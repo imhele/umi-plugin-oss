@@ -1,0 +1,24 @@
+{
+  "name": "umi-plugin-oss",
+  "version": "0.1.0",
+  "main": "./lib/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/imhele/umi-plugin-oss"
+  },
+  "homepage": "https://github.com/imhele/umi-plugin-oss",
+  "authors": [
+    "Hele <work@imhele.com> (https://github.com/imhele)"
+  ],
+  "bugs": {
+    "url": "https://github.com/imhele/umi-plugin-oss/issues"
+  },
+  "files": [
+    "lib",
+    "src"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "ali-oss": "6.x"
+  }
+}
