@@ -1,6 +1,6 @@
 /.git/
 /.vscode/
-/docs/
+/examples/
 /node_modules/
 .gitignore
 .npmignore

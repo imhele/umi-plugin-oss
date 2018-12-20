@@ -1,3 +1,5 @@
+import SyncFiles, { OssAcl, SyncFilesOptions } from './syncFiles';
+
 interface UmiApi {
   config: {
     base?: string;
@@ -28,17 +30,20 @@ interface UmiApi {
     watch: (...messages: Array<string>) => void;
   };
   debug: (message: string) => void;
-  onBuildSuccess: (arg: { stats: any }) => void;
+  onBuildSuccess: (arg: object) => void;
 };
-
-export type OssAcl = 'public-read-write' | 'public-read' | 'private';
 
 export interface UmiPluginOssOptions {
   accessKeyId?: string;
   accessKeySecret?: string;
   stsToken?: string;
-  cdn?: {
-    authKey: string;
+  secure?: boolean;
+  timeout?: number;
+  bucket?: {
+    name: string;
+    region?: string;
+    endpoint?: string;
+    internal?: boolean;
   };
   acl?: OssAcl | {
     private?: RegExp | string;
@@ -62,4 +67,10 @@ export interface UmiPluginOssOptions {
   };
 };
 
-export default function (api: UmiApi, options: UmiPluginOssOptions) { };
+export default function (api: UmiApi, options?: UmiPluginOssOptions) {
+  api.onBuildSuccess((): void => {
+    const syncFiles = new SyncFiles({});
+    console.log(api.paths.absOutputPath);
+    console.log(api.config.publicPath);
+  });
+};
