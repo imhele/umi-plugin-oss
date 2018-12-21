@@ -5,8 +5,10 @@
   "types": "./lib/index.d.ts",
   "typings": "./lib/index.d.ts",
   "scripts": {
-    "build": "tsc -p .",
-    "move-lib": "xcopy /y .\\lib .\\examples\\base\\node_modules\\umi-plugin-oss\\lib"
+    "build": "yarn lint && tsc -p .",
+    "lint": "tslint \"src/**/*.ts\"",
+    "pre": "yarn build && yarn moveLib",
+    "moveLib": "xcopy /y .\\lib .\\examples\\base\\node_modules\\umi-plugin-oss\\lib"
   },
   "keywords": [
     "umi",
@@ -31,6 +33,9 @@
   ],
   "license": "MIT",
   "devDependencies": {
-    "ali-oss": "6.x"
+    "@types/ali-oss": "^6.0.1",
+    "ali-oss": "6.x",
+    "tslint": "^5.12.0",
+    "typescript": "^3.2.2"
   }
 }

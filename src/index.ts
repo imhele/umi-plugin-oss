@@ -1,4 +1,4 @@
-import SyncFiles, { OssAcl, SyncFilesOptions } from './syncFiles';
+import SyncFiles, { ACLType, OSSOptions, SyncFilesOptions } from './syncFiles';
 
 interface UmiApi {
   config: {
@@ -33,32 +33,11 @@ interface UmiApi {
   onBuildSuccess: (arg: object) => void;
 };
 
-export interface UmiPluginOssOptions {
-  accessKeyId?: string;
-  accessKeySecret?: string;
-  stsToken?: string;
-  secure?: boolean;
-  timeout?: number;
-  bucket?: {
-    name: string;
-    region?: string;
-    endpoint?: string;
-    internal?: boolean;
-  };
-  acl?: OssAcl | {
+export type UmiPluginOssOptions = OSSOptions & {
+  acl?: ACLType | {
     private?: RegExp | string;
     publicRead?: RegExp | string;
     publicReadWrite?: RegExp | string;
-  };
-  headers?: {
-    'Cache-Control'?: string;
-    'Content-Disposition'?: string;
-    'Content-Encoding'?: string;
-    'Expires'?: string;
-    'x-oss-server-side-encryption'?: 'AES256' | 'KMS';
-    'x-oss-server-side-encryption-key-id'?: string;
-    'x-oss-object-acl'?: OssAcl;
-    [key: string]: string;
   };
   bijection?: boolean;
   ignore?: {
@@ -69,7 +48,7 @@ export interface UmiPluginOssOptions {
 
 export default function (api: UmiApi, options?: UmiPluginOssOptions) {
   api.onBuildSuccess((): void => {
-    const syncFiles = new SyncFiles({});
+    const syncFiles = new SyncFiles({...options});
     console.log(api.paths.absOutputPath);
     console.log(api.config.publicPath);
   });
