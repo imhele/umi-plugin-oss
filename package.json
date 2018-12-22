@@ -5,9 +5,10 @@
   "types": "./lib/index.d.ts",
   "typings": "./lib/index.d.ts",
   "scripts": {
-    "build": "yarn lint && tsc -p .",
+    "build": "tsc -p .",
+    "precommit": "lint-staged",
     "lint": "tslint \"src/**/*.ts\"",
-    "pre": "yarn build && yarn moveLib",
+    "pre": "yarn lint && yarn build && yarn moveLib",
     "moveLib": "xcopy /y .\\lib .\\examples\\base\\node_modules\\umi-plugin-oss\\lib"
   },
   "keywords": [
@@ -16,6 +17,12 @@
     "plugin",
     "oss"
   ],
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "tslint --fix",
+      "git add"
+    ]
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/imhele/umi-plugin-oss"
@@ -35,6 +42,8 @@
   "devDependencies": {
     "@types/ali-oss": "^6.0.1",
     "ali-oss": "6.x",
+    "eslint": "^5.10.0",
+    "lint-staged": "^8.1.0",
     "tslint": "^5.12.0",
     "typescript": "^3.2.2"
   }

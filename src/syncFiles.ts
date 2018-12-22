@@ -1,7 +1,7 @@
-import OSS, { Options, ACLType } from 'ali-oss';
+import OSS, { ACLType, Options } from 'ali-oss';
 
 export type ACLType = ACLType;
-export type OSSOptions = {
+export interface OSSOptions {
   accessKeyId?: string;
   accessKeySecret?: string;
   stsToken?: string;
@@ -23,14 +23,13 @@ export type OSSOptions = {
     'x-oss-object-acl'?: ACLType;
     [key: string]: string;
   };
-};
-export type SyncFilesOptions = OSSOptions & {
+}
+export interface SyncFilesOptions extends OSSOptions {
   cname?: string;
-};
-
+}
 
 export default class SyncFiles {
-  oss: OSS;
+  private oss: OSS;
   constructor(options: SyncFilesOptions) {
     const ossOptions: Options = {
       accessKeyId: options.accessKeyId,
@@ -45,4 +44,4 @@ export default class SyncFiles {
     };
     this.oss = new OSS(ossOptions);
   }
-};
+}

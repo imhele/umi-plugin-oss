@@ -1,5 +1,9 @@
 import SyncFiles, { ACLType, OSSOptions, SyncFilesOptions } from './syncFiles';
 
+interface Ite {
+  test: string;
+}
+
 interface UmiApi {
   config: {
     base?: string;
@@ -21,19 +25,19 @@ interface UmiApi {
     component: string;
     [key: string]: any;
   }>;
-  registerCommand: (name: string, options: {}, fun: (args: Array<string>) => void) => void; // @TODO
+  registerCommand: (name: string, options: {}, fun: (args: string[]) => void) => void; // @TODO
   log: {
-    success: (...messages: Array<string>) => void;
-    error: (...messages: Array<string>) => void;
-    debug: (...messages: Array<string>) => void;
-    pending: (...messages: Array<string>) => void;
-    watch: (...messages: Array<string>) => void;
+    success: (...messages: string[]) => void;
+    error: (...messages: string[]) => void;
+    debug: (...messages: string[]) => void;
+    pending: (...messages: string[]) => void;
+    watch: (...messages: string[]) => void;
   };
   debug: (message: string) => void;
   onBuildSuccess: (arg: object) => void;
-};
+}
 
-export type UmiPluginOssOptions = OSSOptions & {
+export interface UmiPluginOssOptions extends OSSOptions {
   acl?: ACLType | {
     private?: RegExp | string;
     publicRead?: RegExp | string;
@@ -42,14 +46,14 @@ export type UmiPluginOssOptions = OSSOptions & {
   bijection?: boolean;
   ignore?: {
     fileExists?: boolean;
-    fileSizeBetween?: Array<Array<number>>;
+    fileSizeBetween?: number[][];
   };
-};
+}
 
 export default function (api: UmiApi, options?: UmiPluginOssOptions) {
   api.onBuildSuccess((): void => {
-    const syncFiles = new SyncFiles({...options});
-    console.log(api.paths.absOutputPath);
-    console.log(api.config.publicPath);
+    const syncFiles = new SyncFiles({ ...options });
+    api.log.debug(api.paths.absOutputPath);
+    api.log.debug(api.config.publicPath);
   });
-};
+}
