@@ -1,0 +1,22 @@
+defaultSeverity: error
+extends:
+  - tslint:recommended
+jsRules:
+rules:
+  no-bitwise: false
+  no-console: false
+  arrow-parens: false
+  ordered-imports: false
+  member-access: false
+  curly:
+    - true
+    - ignore-same-line
+  quotemark:
+    - true
+    - single
+    - avoid-escape
+  interface-name:
+    - true
+    - never-prefix
+  object-literal-sort-keys: false
+  space-before-function-paren: false
