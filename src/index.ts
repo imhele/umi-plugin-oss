@@ -1,8 +1,5 @@
+import { readdirSync } from 'fs';
 import SyncFiles, { ACLType, OSSOptions, SyncFilesOptions } from './syncFiles';
-
-interface Ite {
-  test: string;
-}
 
 interface UmiApi {
   config: {
@@ -38,12 +35,12 @@ interface UmiApi {
 }
 
 export interface UmiPluginOssOptions extends OSSOptions {
+  bijection?: boolean;
   acl?: ACLType | {
     private?: RegExp | string;
     publicRead?: RegExp | string;
     publicReadWrite?: RegExp | string;
   };
-  bijection?: boolean;
   ignore?: {
     fileExists?: boolean;
     fileSizeBetween?: number[][];
@@ -52,8 +49,17 @@ export interface UmiPluginOssOptions extends OSSOptions {
 
 export default function (api: UmiApi, options?: UmiPluginOssOptions) {
   api.onBuildSuccess((): void => {
-    const syncFiles = new SyncFiles({ ...options });
-    api.log.debug(api.paths.absOutputPath);
-    api.log.debug(api.config.publicPath);
+    if (typeof api.config.publicPath !== 'string'
+      && typeof options.bucket !== 'object') {
+      return api.log.error('No valid bucket configuration was found.');
+    }
+    const syncFiles = new SyncFiles({
+      ...options,
+      cname: !options.bucket && api.config.publicPath,
+    });
+    const fileArr = readdirSync(api.paths.absOutputPath);
+    api.log.debug(...fileArr);
+    const uploadResult = fileArr.map(syncFiles.upload).filter(err => err) as string[];
+    api.log.error(...uploadResult);
   });
 }

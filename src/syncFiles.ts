@@ -37,11 +37,17 @@ export default class SyncFiles {
       stsToken: options.stsToken,
       secure: options.secure,
       timeout: options.timeout,
-      endpoint: options.bucket ? options.bucket.name : options.cname,
+      endpoint: options.cname || options.bucket.name,
       bucket: options.bucket && options.bucket.name,
       region: options.bucket && options.bucket.region,
       internal: options.bucket && options.bucket.internal,
     };
     this.oss = new OSS(ossOptions);
+  }
+  public upload(filePath: string): false | string {
+    return false;
+  }
+  public list(prefix = '/'): boolean {
+    return null;
   }
 }
