@@ -1,6 +1,6 @@
 {
   "name": "umi-plugin-oss",
-  "version": "0.1.2-3",
+  "version": "0.1.2",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "typings": "./lib/index.d.ts",

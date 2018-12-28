@@ -19,7 +19,10 @@ export default {
         ],
       },
     }],
-    ['umi-plugin-oss', {}],
+    ['umi-plugin-oss', {
+      accessKeyId: 'test',
+      accessKeySecret: 'test',
+    }],
   ],
   publicPath: 'https://path.to.your.oss/dir/',
 }
