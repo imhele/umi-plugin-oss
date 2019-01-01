@@ -1,3 +1,4 @@
+import { createReadStream } from 'fs';
 import OSS, { ACLType, Options } from 'ali-oss';
 
 export type ACLType = ACLType;
@@ -25,7 +26,7 @@ export interface OSSOptions {
   };
 }
 export interface SyncFilesOptions extends OSSOptions {
-  cname?: string;
+  cname?: boolean;
 }
 
 export default class SyncFiles {
@@ -34,20 +35,25 @@ export default class SyncFiles {
     const ossOptions: Options = {
       accessKeyId: options.accessKeyId,
       accessKeySecret: options.accessKeySecret,
+      bucket: options.bucket.name,
+      cname: options.cname,
+      endpoint: options.bucket.endpoint,
+      internal: options.bucket.internal,
+      region: options.bucket.region,
       stsToken: options.stsToken,
       secure: options.secure,
       timeout: options.timeout,
-      endpoint: options.cname || options.bucket.name,
-      bucket: options.bucket && options.bucket.name,
-      region: options.bucket && options.bucket.region,
-      internal: options.bucket && options.bucket.internal,
     };
     this.oss = new OSS(ossOptions);
   }
-  public upload(filePath: string): false | string {
-    return false;
+  public upload(filePath: string): false | Error {
+    try {
+      return false;
+    } catch (err) {
+      return err;
+    }
   }
-  public list(prefix = '/'): boolean {
+  public list(prefix = '/'): string[] {
     return null;
   }
 }

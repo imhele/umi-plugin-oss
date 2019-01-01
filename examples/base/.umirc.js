@@ -22,6 +22,9 @@ export default {
     ['umi-plugin-oss', {
       accessKeyId: 'test',
       accessKeySecret: 'test',
+      ignore: {
+        fileSizeBetween: [[0, 800]],
+      },
     }],
   ],
   publicPath: 'https://path.to.your.oss/dir/',

@@ -9,6 +9,7 @@
     "experimentalDecorators": true,
     "noImplicitAny": true,
     "preserveConstEnums": true,
+    "lib": ["esnext", "dom"],
     "outDir": "lib/"
   },
   "include": [
