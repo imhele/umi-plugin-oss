@@ -32,7 +32,7 @@ export interface SyncFilesOptions extends OSSOptions {
 export default class SyncFiles {
   private oss: OSS;
   constructor(options: SyncFilesOptions) {
-    const ossOptions: Options = {
+    const ossOptions = {
       accessKeyId: options.accessKeyId,
       accessKeySecret: options.accessKeySecret,
       bucket: options.bucket.name,
@@ -44,7 +44,7 @@ export default class SyncFiles {
       secure: options.secure,
       timeout: options.timeout,
     };
-    this.oss = new OSS(ossOptions);
+    this.oss = new OSS(ossOptions as Options);
   }
   public upload(filePath: string): false | Error {
     try {
