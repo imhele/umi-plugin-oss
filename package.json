@@ -6,6 +6,7 @@
   "typings": "./lib/index.d.ts",
   "scripts": {
     "build": "tsc -p .",
+    "coverage": "cat ./coverage/lcov.info | coveralls",
     "lint": "tslint \"src/**/*.ts\"",
     "moveLib": "xcopy /y .\\lib .\\examples\\base\\node_modules\\umi-plugin-oss\\lib",
     "precommit": "lint-staged",
@@ -47,6 +48,7 @@
   "devDependencies": {
     "@types/jest": "^23.3.11",
     "@types/node": "^10.12.18",
+    "coveralls": "^3.0.2",
     "eslint": "^5.10.0",
     "lint-staged": "^8.1.0",
     "tslint": "^5.12.0",

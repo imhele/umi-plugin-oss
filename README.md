@@ -56,3 +56,6 @@ interface OSSOptions {
 
 ## Example
 Visit it at [examples/base](https://github.com/imhele/umi-plugin-oss/tree/master/examples/base)
+
+## License
+MIT
