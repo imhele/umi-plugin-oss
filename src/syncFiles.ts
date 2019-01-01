@@ -48,6 +48,7 @@ export default class SyncFiles {
   }
   public upload(filePath: string): false | Error {
     try {
+      if (typeof filePath !== 'string') throw new Error();
       return false;
     } catch (err) {
       return err;

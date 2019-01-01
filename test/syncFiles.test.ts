@@ -30,6 +30,7 @@ describe('test syncFiles', () => {
     }).not.toThrow();
     const instance = new SyncFiles(options);
     expect(instance.upload('')).toBe(false);
+    expect(instance.upload(null)).toBeInstanceOf(Error);
   });
 
   test('SyncFiles.list', () => {
@@ -45,5 +46,6 @@ describe('test syncFiles', () => {
     }).not.toThrow();
     const instance = new SyncFiles(options);
     expect(instance.list()).toBe(null);
+    expect(instance.list('/')).toBe(null);
   });
 });
