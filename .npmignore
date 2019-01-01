@@ -10,3 +10,4 @@ tsconfig.json
 .coveralls.yml
 .travis.yml
 /coverage/
+/test/

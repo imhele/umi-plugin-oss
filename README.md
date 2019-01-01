@@ -5,10 +5,16 @@
 [![Build Status](https://img.shields.io/travis/imhele/umi-plugin-oss.svg?style=flat-square)](https://travis-ci.org/imhele/umi-plugin-oss)
 [![Coverage Status](https://coveralls.io/repos/github/imhele/umi-plugin-oss/badge.svg?branch=master)](https://coveralls.io/github/imhele/umi-plugin-oss?branch=master)
 
-**Just add a plugin into your [Umi](https://github.com/umijs/umi) project, automatically upload productions to [OSS@AliCloud](https://www.alibabacloud.com/product/oss) after build!**
+**Just add a plugin into your [Umi](https://github.com/umijs/umi) project, automatically upload productions to [OSS@AliCloud](https://www.alibabacloud.com/product/oss) !**
 
 ## Usage
-Add `umi-plugin-oss` into `.umirc.js` or `config.js` of your `UmiJS` project [UmiJS - Plugin usage](https://umijs.org/plugin/#plugin-usage)
+
+```sh
+$ npm install umi-plugin-oss --save-dev
+or
+$ yarn add umi-plugin-oss --dev
+```
+Add `umi-plugin-oss` into `.umirc.js` or `config.js` of your `UmiJS` project. [UmiJS - Plugin usage](https://umijs.org/plugin/#plugin-usage)
 
 ```js
 export default {
