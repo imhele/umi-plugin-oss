@@ -6,10 +6,11 @@
   "typings": "./lib/index.d.ts",
   "scripts": {
     "build": "tsc -p .",
-    "precommit": "lint-staged",
     "lint": "tslint \"src/**/*.ts\"",
+    "moveLib": "xcopy /y .\\lib .\\examples\\base\\node_modules\\umi-plugin-oss\\lib",
+    "precommit": "lint-staged",
     "pre": "yarn lint && yarn build && yarn moveLib",
-    "moveLib": "xcopy /y .\\lib .\\examples\\base\\node_modules\\umi-plugin-oss\\lib"
+    "test": "umi-test"
   },
   "keywords": [
     "umi",
@@ -44,6 +45,7 @@
     "ali-oss": "^6.0.2"
   },
   "devDependencies": {
+    "@types/jest": "^23.3.11",
     "@types/node": "^10.12.18",
     "eslint": "^5.10.0",
     "lint-staged": "^8.1.0",

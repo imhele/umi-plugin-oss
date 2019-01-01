@@ -832,6 +832,11 @@
   resolved "http://registry.npm.taobao.org/@types/ali-oss/download/@types/ali-oss-6.0.1.tgz#6d73fbc28736226e70bef408bcbb884007857c08"
   integrity sha1-bXP7woc2Im5wvvQIvLuIQAeFfAg=
 
+"@types/jest@^23.3.11":
+  version "23.3.11"
+  resolved "http://registry.npm.taobao.org/@types/jest/download/@types/jest-23.3.11.tgz#d3a936ae753d9e484965f5cbd19027c2b8af2551"
+  integrity sha1-06k2rnU9nkhJZfXL0ZAnwrivJVE=
+
 "@types/node@*", "@types/node@^10.12.18":
   version "10.12.18"
   resolved "http://registry.npm.taobao.org/@types/node/download/@types/node-10.12.18.tgz#1d3ca764718915584fcd9f6344621b7672665c67"
