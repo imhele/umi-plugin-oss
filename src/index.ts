@@ -35,13 +35,16 @@ interface UmiApi {
   onBuildSuccess: (arg: object) => void;
 }
 
+export interface ACLRule {
+  private?: RegExp | string[];
+  publicRead?: RegExp | string[];
+  publicReadWrite?: RegExp | string[];
+  else?: ACLType | 'private';
+}
+
 export interface UmiPluginOssOptions extends OSSOptions {
   bijection?: boolean;
-  acl?: ACLType | 'private' | { // @https://github.com/DefinitelyTyped/DefinitelyTyped/pull/31819
-    private?: RegExp | string[];
-    publicRead?: RegExp | string[];
-    publicReadWrite?: RegExp | string[];
-  };
+  acl?: ACLType | 'private' | ACLRule; // @https://github.com/DefinitelyTyped/DefinitelyTyped/pull/31819
   ignore?: {
     extname?: string[];
     existsInOss?: boolean;
@@ -59,6 +62,22 @@ export const defaultOptions: UmiPluginOssOptions = {
 };
 
 type FileInfo = [string, string, ACLType | 'private'];
+
+const handleAcl = (rule: RegExp | string[], fileInfoArr: FileInfo[], acl: ACLType | 'private') => {
+  if (Array.isArray(rule)) {
+    fileInfoArr.forEach(fileInfo => {
+      if (rule.includes(fileInfo[1])) {
+        fileInfo[2] = acl;
+      }
+    });
+  } else if (rule instanceof RegExp) {
+    fileInfoArr.forEach(fileInfo => {
+      if (rule.test(fileInfo[0])) {
+        fileInfo[2] = acl;
+      }
+    });
+  }
+};
 
 export default function (api: UmiApi, options?: UmiPluginOssOptions) {
   api.onBuildSuccess((): void => {
@@ -103,15 +122,13 @@ export default function (api: UmiApi, options?: UmiPluginOssOptions) {
 
     // filter unnecessary files
     const { absOutputPath } = api.paths;
-    let fileArr: FileInfo[] = readdirSync(absOutputPath)
+    let fileInfoArr: FileInfo[] = readdirSync(absOutputPath)
       .map(name => (<FileInfo>[name, path.join(absOutputPath, name), 'private']))
-      .concat(...readdirSync(
-        path.join(absOutputPath, 'static'))
-        .map(name => (<FileInfo>[name, path.join(absOutputPath, 'static', name), 'private'])),
-      )
+      .concat(readdirSync(path.join(absOutputPath, 'static'))
+        .map(name => (<FileInfo>[name, path.join(absOutputPath, 'static', name), 'private'])))
       .filter(filePath => !extname.includes(path.extname(filePath[0])));
     if (Array.isArray(options.ignore.sizeBetween)) {
-      fileArr = fileArr.filter(filePath => {
+      fileInfoArr = fileInfoArr.filter(filePath => {
         const stat = statSync(filePath[1]);
         if (!stat.isFile()) return false;
         return !options.ignore.sizeBetween.some(([min, max]) => {
@@ -119,13 +136,23 @@ export default function (api: UmiApi, options?: UmiPluginOssOptions) {
         });
       });
     } else {
-      fileArr = fileArr.filter(filePath => statSync(filePath[1]).isFile());
+      fileInfoArr = fileInfoArr.filter(filePath => statSync(filePath[1]).isFile());
     }
 
     // handle files' acl
     options.acl = options.acl || options.headers['x-oss-object-acl'] || 'private';
     if (typeof options.acl === 'string') {
-      fileArr.forEach(fileInfo => fileInfo[2] = <FileInfo[2]>options.acl);
+      fileInfoArr.forEach(fileInfo => fileInfo[2] = <FileInfo[2]>options.acl);
+    } else {
+      (<ACLRule>options.acl).else = (<ACLRule>options.acl).else || 'private';
+      fileInfoArr.forEach(fileInfo => fileInfo[2] = (<ACLRule>options.acl).else);
+      const { publicReadWrite, publicRead, private: privateAcl } = <ACLRule>options.acl;
+      handleAcl(publicReadWrite, fileInfoArr, 'public-read-write');
+      handleAcl(publicRead, fileInfoArr, 'public-read');
+      handleAcl(privateAcl, fileInfoArr, 'private');
     }
+
+    // debug
+    fileInfoArr.forEach(fileInfo => api.log.debug(fileInfo[0], fileInfo[2]));
   });
 }

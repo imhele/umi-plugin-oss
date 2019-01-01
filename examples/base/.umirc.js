@@ -25,6 +25,10 @@ export default {
       ignore: {
         fileSizeBetween: [[0, 800]],
       },
+      acl: {
+        publicRead: new RegExp('.js'),
+        else: 'private',
+      },
     }],
   ],
   publicPath: 'https://path.to.your.oss/dir/',
