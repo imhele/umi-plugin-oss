@@ -17,6 +17,21 @@ describe('test syncFiles', () => {
     }).toThrow();
   });
 
+  test('SyncFiles.upload', () => {
+    const options: OSSOptions = {
+      accessKeyId: 'test',
+      accessKeySecret: 'test',
+      bucket: {
+        name: undefined,
+      },
+    };
+    expect(() => {
+      new SyncFiles(options);
+    }).not.toThrow();
+    const instance = new SyncFiles(options);
+    expect(instance.upload('')).toBe(false);
+  });
+
   test('SyncFiles.list', () => {
     const options: OSSOptions = {
       accessKeyId: 'test',

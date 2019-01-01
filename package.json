@@ -11,7 +11,8 @@
     "moveLib": "xcopy /y .\\lib .\\examples\\base\\node_modules\\umi-plugin-oss\\lib",
     "precommit": "lint-staged",
     "pre": "yarn lint && yarn build && yarn moveLib",
-    "test": "umi-test"
+    "test": "umi-test",
+    "test:coverage": "umi-test --coverage"
   },
   "keywords": [
     "umi",

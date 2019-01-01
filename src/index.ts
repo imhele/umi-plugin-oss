@@ -2,7 +2,7 @@ import path from 'path';
 import { readdirSync, statSync } from 'fs';
 import SyncFiles, { ACLType, OSSOptions } from './syncFiles';
 
-interface UmiApi {
+export interface UmiApi {
   config: {
     base?: string;
     publicPath?: string;
@@ -32,7 +32,7 @@ interface UmiApi {
     watch: (...messages: string[]) => void;
   };
   debug: (message: string) => void;
-  onBuildSuccess: (arg: object) => void;
+  onBuildSuccess: (callback: () => void) => void;
 }
 
 export interface ACLRule {
@@ -61,12 +61,12 @@ export const defaultOptions: UmiPluginOssOptions = {
   ignore: {},
 };
 
-type FileInfo = [string, string, ACLType | 'private'];
+export type FileInfo = [string, string, ACLType | 'private'];
 
-const handleAcl = (rule: RegExp | string[], fileInfoArr: FileInfo[], acl: ACLType | 'private') => {
+export const handleAcl = (rule: RegExp | string[], fileInfoArr: FileInfo[], acl: ACLType | 'private') => {
   if (Array.isArray(rule)) {
     fileInfoArr.forEach(fileInfo => {
-      if (rule.includes(fileInfo[1])) {
+      if (rule.includes(fileInfo[0])) {
         fileInfo[2] = acl;
       }
     });
@@ -83,7 +83,7 @@ export default function (api: UmiApi, options?: UmiPluginOssOptions) {
   api.onBuildSuccess((): void => {
     // check options
     if (typeof api.config.publicPath !== 'string'
-      && typeof options.bucket !== 'object') {
+      && typeof options.bucket.name !== 'string') {
       return api.log.error('No valid bucket configuration was found.');
     }
 
