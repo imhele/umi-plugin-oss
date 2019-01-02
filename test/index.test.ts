@@ -135,4 +135,14 @@ describe('test index', () => {
     }).not.toThrow();
   });
 
+  test('UmiPluginOss with bijection', () => {
+    expect(() => {
+      UmiPluginOss(umiApi, {
+        accessKeyId: 'test',
+        accessKeySecret: 'test',
+        bijection: true,
+      });
+    }).not.toThrow();
+  });
+
 });

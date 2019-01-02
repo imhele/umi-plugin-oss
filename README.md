@@ -1,8 +1,8 @@
 # umi-plugin-oss
 
-[![NPM version](https://img.shields.io/npm/v/umi-plugin-oss.svg?style=flat-square)](https://npmjs.org/package/umi-plugin-oss)
-[![NPM downloads](http://img.shields.io/npm/dm/umi-plugin-oss.svg?style=flat-square)](https://npmjs.org/package/umi-plugin-oss)
-[![Build Status](https://img.shields.io/travis/imhele/umi-plugin-oss.svg?style=flat-square)](https://travis-ci.org/imhele/umi-plugin-oss)
+[![NPM version](https://img.shields.io/npm/v/umi-plugin-oss.svg?style=flat)](https://npmjs.org/package/umi-plugin-oss)
+[![NPM downloads](http://img.shields.io/npm/dm/umi-plugin-oss.svg?style=flat)](https://npmjs.org/package/umi-plugin-oss)
+[![Build Status](https://img.shields.io/travis/imhele/umi-plugin-oss.svg?style=flat)](https://travis-ci.org/imhele/umi-plugin-oss)
 [![Coverage Status](https://coveralls.io/repos/github/imhele/umi-plugin-oss/badge.svg?branch=master)](https://coveralls.io/github/imhele/umi-plugin-oss?branch=master)
 
 **Just add a plugin into your [Umi](https://github.com/umijs/umi) project, automatically upload productions to [OSS@AliCloud](https://www.alibabacloud.com/product/oss) !**
