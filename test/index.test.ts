@@ -3,6 +3,8 @@ import UmiPluginOss, { handleAcl, FileInfo, UmiApi } from '../src/index';
 
 jest.mock('fs');
 
+let messageQueue: Map<string, string[]> = new Map();
+
 const umiApi: UmiApi = {
   config: {
     base: undefined,
@@ -23,23 +25,23 @@ const umiApi: UmiApi = {
   registerCommand: () => { },
   log: {
     success: (...messages: string[]) => {
-      console.log(`success:\n${JSON.stringify(messages)}`);
+      messageQueue.set(`${Date.now()}|success`, messages);
     },
     error: (...messages: string[]) => {
-      console.log(`error:\n${JSON.stringify(messages)}`);
+      messageQueue.set(`${Date.now()}|error`, messages);
     },
     debug: (...messages: string[]) => {
-      console.log(`debug:\n${JSON.stringify(messages)}`);
+      messageQueue.set(`${Date.now()}|debug`, messages);
     },
     pending: (...messages: string[]) => {
-      console.log(`pending:\n${JSON.stringify(messages)}`);
+      messageQueue.set(`${Date.now()}|pending`, messages);
     },
     watch: (...messages: string[]) => {
-      console.log(`watch:\n${JSON.stringify(messages)}`);
+      messageQueue.set(`${Date.now()}|watch`, messages);
     },
   },
   debug: (message: string) => {
-    console.log(`debug:\n${message}`);
+    messageQueue.set(`${Date.now()}|debug`, [message]);
   },
   onBuildSuccess: (callback) => { callback(); },
 };
@@ -62,6 +64,8 @@ describe('test index', () => {
     expect(() => {
       UmiPluginOss(umiApi, {});
     }).toThrow();
+    expect(messageQueue.size).toBe(0);
+    messageQueue.clear();
   });
 
   test('UmiPluginOss with default options', () => {
@@ -71,6 +75,11 @@ describe('test index', () => {
         accessKeySecret: 'test',
       });
     }).not.toThrow();
+    expect(messageQueue.size).toBe(1);
+    const keys = Array.from(messageQueue.keys());
+    expect(keys[0].endsWith('debug')).toBe(true);
+    expect(messageQueue.get(keys[0])).toEqual(['/home/dist/umi.js', 'private']);
+    messageQueue.clear();
   });
 
   test('UmiPluginOss without cname and bucket', () => {
@@ -88,6 +97,8 @@ describe('test index', () => {
           accessKeySecret: 'test',
         });
     }).toThrow();
+    expect(messageQueue.size).toBe(0);
+    messageQueue.clear();
   });
 
   test('UmiPluginOss with bucket', () => {
@@ -109,6 +120,11 @@ describe('test index', () => {
           },
         });
     }).not.toThrow();
+    expect(messageQueue.size).toBe(1);
+    const keys = Array.from(messageQueue.keys());
+    expect(keys[0].endsWith('debug')).toBe(true);
+    expect(messageQueue.get(keys[0])).toEqual(['/home/dist/umi.js', 'private']);
+    messageQueue.clear();
   });
 
   test('UmiPluginOss with RegExp acl rule', () => {
@@ -121,6 +137,11 @@ describe('test index', () => {
         },
       });
     }).not.toThrow();
+    expect(messageQueue.size).toBe(1);
+    const keys = Array.from(messageQueue.keys());
+    expect(keys[0].endsWith('debug')).toBe(true);
+    expect(messageQueue.get(keys[0])).toEqual(['/home/dist/umi.js', 'public-read']);
+    messageQueue.clear();
   });
 
   test('UmiPluginOss with ignore filter', () => {
@@ -133,6 +154,8 @@ describe('test index', () => {
         },
       });
     }).not.toThrow();
+    expect(messageQueue.size).toBe(0);
+    messageQueue.clear();
   });
 
   test('UmiPluginOss with bijection', () => {
@@ -143,6 +166,11 @@ describe('test index', () => {
         bijection: true,
       });
     }).not.toThrow();
+    expect(messageQueue.size).toBe(1);
+    const keys = Array.from(messageQueue.keys());
+    expect(keys[0].endsWith('debug')).toBe(true);
+    expect(messageQueue.get(keys[0])).toEqual(['/home/dist/umi.js', 'private']);
+    messageQueue.clear();
   });
 
 });
