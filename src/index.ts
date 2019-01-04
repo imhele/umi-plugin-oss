@@ -8,6 +8,7 @@ export interface UmiApi {
     publicPath?: string;
     cssPublicPath?: string;
   };
+  debugMode?: boolean;
   paths: {
     outputPath: string;
     absOutputPath: string;
@@ -166,6 +167,7 @@ export default function (api: UmiApi, options?: UmiPluginOssOptions) {
       }/${prefix}:\n${
       fileInfoArr.map(fileInfo => `${fileInfo[0]}    ${fileInfo[2]}`).join('\n')
       }`);
-    syncFiles.upload(prefix, fileInfoArr, api.log).then(time => api.log.success(`Total: ${time / 1000}s`));
+    if (!api.debugMode)
+      syncFiles.upload(prefix, fileInfoArr, api.log).then(time => api.log.success(`Total: ${time / 1000}s`));
   });
 }

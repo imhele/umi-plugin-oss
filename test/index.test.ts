@@ -3,6 +3,8 @@ import { FileInfo } from '../src/syncFiles';
 import UmiPluginOss, { handleAcl, UmiApi } from '../src/index';
 
 jest.mock('fs');
+jest.mock('path');
+jest.mock('ali-oss');
 
 export let messageQueue: Map<string, string[]> = new Map();
 
@@ -12,6 +14,7 @@ export const umiApi: UmiApi = {
     publicPath: 'https://cdn.imhele.com/',
     cssPublicPath: undefined,
   },
+  debugMode: true,
   paths: {
     outputPath: '/dist/',
     absOutputPath: '/home/dist/',
@@ -62,14 +65,15 @@ describe('test index', () => {
   });
 
   test('UmiPluginOss without params', () => {
+    messageQueue.clear();
     expect(() => {
       UmiPluginOss(umiApi, {});
     }).toThrow();
     expect(messageQueue.size).toBe(0);
-    messageQueue.clear();
   });
 
   test('UmiPluginOss with default options', () => {
+    messageQueue.clear();
     expect(() => {
       UmiPluginOss(umiApi, {
         accessKeyId: 'test',
@@ -79,11 +83,14 @@ describe('test index', () => {
     expect(messageQueue.size).toBe(1);
     const keys = Array.from(messageQueue.keys());
     expect(keys[0].endsWith('success')).toBe(true);
-    expect(messageQueue.get(keys[0])).toEqual(['/home/dist/umi.js', 'private']);
-    messageQueue.clear();
+    expect(messageQueue.get(keys[0])[0]).toBe('The following files will be uploaded to cdn.imhele.com/:\n'
+      + 'umi.js    private\n'
+      + 'index.html    private\n'
+      + 'static/image.png    private');
   });
 
   test('UmiPluginOss without cname and bucket', () => {
+    messageQueue.clear();
     expect(() => {
       UmiPluginOss(
         {
@@ -99,10 +106,10 @@ describe('test index', () => {
         });
     }).toThrow();
     expect(messageQueue.size).toBe(0);
-    messageQueue.clear();
   });
 
   test('UmiPluginOss with bucket', () => {
+    messageQueue.clear();
     expect(() => {
       UmiPluginOss(
         {
@@ -121,14 +128,17 @@ describe('test index', () => {
           },
         });
     }).not.toThrow();
-    expect(messageQueue.size).toBe(2);
+    expect(messageQueue.size).toBe(1);
     const keys = Array.from(messageQueue.keys());
     expect(keys[0].endsWith('success')).toBe(true);
-    expect(messageQueue.get(keys[1])).toEqual(['/home/dist/umi.js', 'private']);
-    messageQueue.clear();
+    expect(messageQueue.get(keys[0])[0]).toBe('The following files will be uploaded to imhele/:\n'
+      + 'umi.js    private\n'
+      + 'index.html    private\n'
+      + 'static/image.png    private');
   });
 
   test('UmiPluginOss with RegExp acl rule', () => {
+    messageQueue.clear();
     expect(() => {
       UmiPluginOss(umiApi, {
         accessKeyId: 'test',
@@ -138,14 +148,17 @@ describe('test index', () => {
         },
       });
     }).not.toThrow();
-    expect(messageQueue.size).toBe(2);
+    expect(messageQueue.size).toBe(1);
     const keys = Array.from(messageQueue.keys());
     expect(keys[0].endsWith('success')).toBe(true);
-    expect(messageQueue.get(keys[1])).toEqual(['/home/dist/umi.js', 'public-read']);
-    messageQueue.clear();
+    expect(messageQueue.get(keys[0])[0]).toBe('The following files will be uploaded to cdn.imhele.com/:\n'
+      + 'umi.js    public-read\n'
+      + 'index.html    private\n'
+      + 'static/image.png    private');
   });
 
   test('UmiPluginOss with ignore filter', () => {
+    messageQueue.clear();
     expect(() => {
       UmiPluginOss(umiApi, {
         accessKeyId: 'test',
@@ -156,10 +169,10 @@ describe('test index', () => {
       });
     }).not.toThrow();
     expect(messageQueue.size).toBe(1);
-    messageQueue.clear();
   });
 
   test('UmiPluginOss with bijection', () => {
+    messageQueue.clear();
     expect(() => {
       UmiPluginOss(umiApi, {
         accessKeyId: 'test',
@@ -167,11 +180,30 @@ describe('test index', () => {
         bijection: true,
       });
     }).not.toThrow();
-    expect(messageQueue.size).toBe(2);
+    expect(messageQueue.size).toBe(1);
     const keys = Array.from(messageQueue.keys());
     expect(keys[0].endsWith('success')).toBe(true);
-    expect(messageQueue.get(keys[1])).toEqual(['/home/dist/umi.js', 'private']);
+    expect(messageQueue.get(keys[0])[0]).toBe('The following files will be uploaded to cdn.imhele.com/:\n'
+      + 'umi.js    private\n'
+      + 'index.html    private\n'
+      + 'static/image.png    private');
+  });
+
+  test('UmiPluginOss without debugMode', () => {
     messageQueue.clear();
+    expect(() => {
+      UmiPluginOss(
+        {
+          ...umiApi,
+          debugMode: false,
+        },
+        {
+          accessKeyId: 'test',
+          accessKeySecret: 'test',
+          bijection: true,
+        }
+      );
+    }).not.toThrow();
   });
 
 });
