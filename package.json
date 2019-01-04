@@ -11,8 +11,8 @@
     "move-lib": "cp -r ./lib ./examples/base/node_modules/umi-plugin-oss/lib",
     "move-lib:win": "xcopy /y .\\lib .\\examples\\base\\node_modules\\umi-plugin-oss\\lib",
     "precommit": "lint-staged",
-    "pre": "yarn lint && yarn build && yarn move-lib",
-    "pre:win": "yarn lint && yarn build && yarn move-lib:win",
+    "pre": "yarn lint && yarn build && yarn move-lib && cd examples/base && yarn build",
+    "pre:win": "yarn lint && yarn build && yarn move-lib:win && cd examples\\base && yarn build",
     "test": "umi-test",
     "test:coverage": "umi-test --coverage"
   },
@@ -45,7 +45,6 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@types/ali-oss": "^6.0.1",
     "ali-oss": "^6.0.2"
   },
   "devDependencies": {

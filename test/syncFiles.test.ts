@@ -1,4 +1,5 @@
 import 'jest';
+import { umiApi, messageQueue } from './index.test';
 import SyncFiles, { OSSOptions } from '../src/syncFiles';
 
 describe('test syncFiles', () => {
@@ -29,8 +30,7 @@ describe('test syncFiles', () => {
       new SyncFiles(options);
     }).not.toThrow();
     const instance = new SyncFiles(options);
-    expect(instance.upload('')).toBe(false);
-    expect(instance.upload(null)).toBeInstanceOf(Error);
+    expect(instance.upload('', [], umiApi.log)).toBe(false); // @TODO
   });
 
   test('SyncFiles.list', () => {

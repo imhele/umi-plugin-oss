@@ -1,11 +1,12 @@
 import 'jest';
-import UmiPluginOss, { handleAcl, FileInfo, UmiApi } from '../src/index';
+import { FileInfo } from '../src/syncFiles';
+import UmiPluginOss, { handleAcl, UmiApi } from '../src/index';
 
 jest.mock('fs');
 
-let messageQueue: Map<string, string[]> = new Map();
+export let messageQueue: Map<string, string[]> = new Map();
 
-const umiApi: UmiApi = {
+export const umiApi: UmiApi = {
   config: {
     base: undefined,
     publicPath: 'https://cdn.imhele.com/',
@@ -77,7 +78,7 @@ describe('test index', () => {
     }).not.toThrow();
     expect(messageQueue.size).toBe(1);
     const keys = Array.from(messageQueue.keys());
-    expect(keys[0].endsWith('debug')).toBe(true);
+    expect(keys[0].endsWith('success')).toBe(true);
     expect(messageQueue.get(keys[0])).toEqual(['/home/dist/umi.js', 'private']);
     messageQueue.clear();
   });
@@ -120,10 +121,10 @@ describe('test index', () => {
           },
         });
     }).not.toThrow();
-    expect(messageQueue.size).toBe(1);
+    expect(messageQueue.size).toBe(2);
     const keys = Array.from(messageQueue.keys());
-    expect(keys[0].endsWith('debug')).toBe(true);
-    expect(messageQueue.get(keys[0])).toEqual(['/home/dist/umi.js', 'private']);
+    expect(keys[0].endsWith('success')).toBe(true);
+    expect(messageQueue.get(keys[1])).toEqual(['/home/dist/umi.js', 'private']);
     messageQueue.clear();
   });
 
@@ -137,10 +138,10 @@ describe('test index', () => {
         },
       });
     }).not.toThrow();
-    expect(messageQueue.size).toBe(1);
+    expect(messageQueue.size).toBe(2);
     const keys = Array.from(messageQueue.keys());
-    expect(keys[0].endsWith('debug')).toBe(true);
-    expect(messageQueue.get(keys[0])).toEqual(['/home/dist/umi.js', 'public-read']);
+    expect(keys[0].endsWith('success')).toBe(true);
+    expect(messageQueue.get(keys[1])).toEqual(['/home/dist/umi.js', 'public-read']);
     messageQueue.clear();
   });
 
@@ -154,7 +155,7 @@ describe('test index', () => {
         },
       });
     }).not.toThrow();
-    expect(messageQueue.size).toBe(0);
+    expect(messageQueue.size).toBe(1);
     messageQueue.clear();
   });
 
@@ -166,10 +167,10 @@ describe('test index', () => {
         bijection: true,
       });
     }).not.toThrow();
-    expect(messageQueue.size).toBe(1);
+    expect(messageQueue.size).toBe(2);
     const keys = Array.from(messageQueue.keys());
-    expect(keys[0].endsWith('debug')).toBe(true);
-    expect(messageQueue.get(keys[0])).toEqual(['/home/dist/umi.js', 'private']);
+    expect(keys[0].endsWith('success')).toBe(true);
+    expect(messageQueue.get(keys[1])).toEqual(['/home/dist/umi.js', 'private']);
     messageQueue.clear();
   });
 

@@ -1,6 +1,6 @@
 import path from 'path';
 import { readdirSync, statSync } from 'fs';
-import SyncFiles, { ACLType, OSSOptions } from './syncFiles';
+import SyncFiles, { ACLType, OSSOptions, FileInfo } from './syncFiles';
 
 export interface UmiApi {
   config: {
@@ -39,12 +39,13 @@ export interface ACLRule {
   private?: RegExp | string[];
   publicRead?: RegExp | string[];
   publicReadWrite?: RegExp | string[];
-  else?: ACLType | 'private';
+  else?: ACLType;
 }
 
 export interface UmiPluginOssOptions extends OSSOptions {
+  acl?: ACLType | ACLRule;
   bijection?: boolean;
-  acl?: ACLType | 'private' | ACLRule; // @https://github.com/DefinitelyTyped/DefinitelyTyped/pull/31819
+  delimiter?: string;
   ignore?: {
     extname?: string[];
     existsInOss?: boolean;
@@ -61,9 +62,7 @@ export const defaultOptions: UmiPluginOssOptions = {
   ignore: {},
 };
 
-export type FileInfo = [string, string, ACLType | 'private'];
-
-export const handleAcl = (rule: RegExp | string[], fileInfoArr: FileInfo[], acl: ACLType | 'private') => {
+export const handleAcl = (rule: RegExp | string[], fileInfoArr: FileInfo[], acl: ACLType) => {
   if (Array.isArray(rule)) {
     fileInfoArr.forEach(fileInfo => {
       if (rule.includes(fileInfo[0])) {
@@ -102,10 +101,13 @@ export default function (api: UmiApi, options?: UmiPluginOssOptions) {
       const urlInfo = new URL(api.config.publicPath);
       endpoint = urlInfo.host;
       prefix = urlInfo.pathname;
+      options.bucket.endpoint = endpoint;
     } else {
       try {
         prefix = new URL(api.config.publicPath).pathname;
-      } catch (err) { }
+      } catch (err) {
+        prefix = api.config.publicPath || '';
+      }
     }
     if (!prefix.endsWith('/')) prefix += '/';
     if (prefix.startsWith('/')) prefix = prefix.slice(1);
@@ -125,7 +127,7 @@ export default function (api: UmiApi, options?: UmiPluginOssOptions) {
     let fileInfoArr: FileInfo[] = readdirSync(absOutputPath)
       .map(name => (<FileInfo>[name, path.join(absOutputPath, name), 'private']))
       .concat(readdirSync(path.join(absOutputPath, 'static'))
-        .map(name => (<FileInfo>[name, path.join(absOutputPath, 'static', name), 'private'])))
+        .map(name => (<FileInfo>[`static/${name}`, path.join(absOutputPath, 'static', name), 'private'])))
       .filter(filePath => !extname.includes(path.extname(filePath[0])));
     if (Array.isArray(options.ignore.sizeBetween)) {
       fileInfoArr = fileInfoArr.filter(filePath => {
@@ -152,7 +154,18 @@ export default function (api: UmiApi, options?: UmiPluginOssOptions) {
       handleAcl(privateAcl, fileInfoArr, 'private');
     }
 
-    // debug
-    fileInfoArr.forEach(fileInfo => api.log.debug(fileInfo[0], fileInfo[2]));
+    // Empty list
+    if (!fileInfoArr.length) {
+      // @TODO: bijection => delete files
+      return api.log.success('There is nothing need to upload.');
+    }
+
+    // upload and print results
+    api.log.success(`The following files will be uploaded to ${
+      endpoint || options.bucket.name
+      }/${prefix}:\n${
+      fileInfoArr.map(fileInfo => `${fileInfo[0]}    ${fileInfo[2]}`).join('\n')
+      }`);
+    syncFiles.upload(prefix, fileInfoArr, api.log).then(time => api.log.success(`Total: ${time / 1000}s`));
   });
 }

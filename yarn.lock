@@ -827,11 +827,6 @@
   dependencies:
     any-observable "^0.3.0"
 
-"@types/ali-oss@^6.0.1":
-  version "6.0.1"
-  resolved "http://registry.npm.taobao.org/@types/ali-oss/download/@types/ali-oss-6.0.1.tgz#6d73fbc28736226e70bef408bcbb884007857c08"
-  integrity sha1-bXP7woc2Im5wvvQIvLuIQAeFfAg=
-
 "@types/jest@^23.3.11":
   version "23.3.11"
   resolved "http://registry.npm.taobao.org/@types/jest/download/@types/jest-23.3.11.tgz#d3a936ae753d9e484965f5cbd19027c2b8af2551"
