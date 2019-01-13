@@ -6,13 +6,10 @@ jest.mock('fs');
 jest.mock('ali-oss');
 
 describe('test syncFiles', () => {
-  test('api exist', () => {
-    expect(SyncFiles).toBeTruthy();
-  });
-
   test('SyncFiles', () => {
+    expect(SyncFiles).toBeTruthy();
     expect(() => {
-      new SyncFiles({});
+      new SyncFiles({}); // tslint:disable-line
     }).toThrow();
   });
 
@@ -26,13 +23,21 @@ describe('test syncFiles', () => {
       },
     };
     expect(() => {
-      new SyncFiles(options);
+      new SyncFiles(options); // tslint:disable-line
     }).not.toThrow();
     const instance = new SyncFiles(options);
     expect(instance.upload('', [], umiApi.log)).toBeInstanceOf(Promise);
     expect(() => {
-      instance.upload('', [['200', '/home/notexist/umi.js', 'private']], umiApi.log);
-      instance.upload('', [['403', '/home/notexist/umi.js', 'private']], umiApi.log);
+      instance.upload('', [
+        ['200', '/home/notexist/umi.js', 'private'],
+        ['403', '/home/notexist/umi.js', 'private'],
+      ], umiApi.log).then(time => {
+        expect(typeof time === 'number').toBe(true);
+        const keys = Array.from(messageQueue.keys());
+        const error = keys.find(k => k.endsWith('error'));
+        expect(error).not.toBe(undefined);
+        expect(messageQueue.get(error)[0]).toBe('403');
+      });
     }).not.toThrow();
   });
 
@@ -45,7 +50,7 @@ describe('test syncFiles', () => {
       },
     };
     expect(() => {
-      new SyncFiles(options);
+      new SyncFiles(options); // tslint:disable-line
     }).not.toThrow();
     const instance = new SyncFiles(options);
     expect(instance.list()).toBe(null);

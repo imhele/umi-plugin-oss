@@ -3,7 +3,7 @@ export function join(...paths: string[]) {
 }
 
 export function extname(name: string) {
-  return name.split('.').reverse()[0];
+  return `.${name.split('.').reverse()[0]}`;
 }
 
 export default { join, extname };

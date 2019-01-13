@@ -81,12 +81,6 @@ export const handleAcl = (rule: RegExp | string[], fileInfoArr: FileInfo[], acl:
 
 export default function (api: UmiApi, options?: UmiPluginOssOptions) {
   api.onBuildSuccess((): void => {
-    // check options
-    if (typeof api.config.publicPath !== 'string'
-      && typeof options.bucket.name !== 'string') {
-      return api.log.error('No valid bucket configuration was found.');
-    }
-
     // default value
     options = {
       ...defaultOptions,
@@ -95,6 +89,12 @@ export default function (api: UmiApi, options?: UmiPluginOssOptions) {
     const { extname = ['.html', '.htm'] } = options.ignore;
     let endpoint: string = options.bucket.endpoint;
     let prefix: string = api.config.publicPath || '';
+
+    // check options
+    if (typeof api.config.publicPath !== 'string'
+      && typeof options.bucket.name !== 'string') {
+      return api.log.error('No valid bucket configuration was found.');
+    }
 
     // ensure use `endpoint` or (`region`, `bucket`) or `cname`
     const cname = !endpoint && !options.bucket.region && !options.bucket.name ? true : false;

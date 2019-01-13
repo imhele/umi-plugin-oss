@@ -8,7 +8,7 @@ export default class OSS {
   }
   public async putStream(targetKey: string, stream: any, options?: object) {
     try {
-      const status: number = parseInt(targetKey);
+      const status: number = parseInt(targetKey, 10);
       return ({
         name: targetKey,
         res: {

@@ -57,11 +57,14 @@ describe('test index', () => {
   });
 
   test('handleAcl', () => {
-    const fileInfoArr: FileInfo[] = [['test.js', '/home/test.js', 'private']];
+    const fileInfoArr: FileInfo[] = [
+      ['umi.js', '/home/umi.js', 'private'],
+      ['test.js', '/home/test.js', 'private'],
+    ];
     expect(() => {
       handleAcl(['test.js'], fileInfoArr, 'public-read');
     }).not.toThrow();
-    expect(fileInfoArr[0][2]).toBe('public-read');
+    expect(fileInfoArr[1][2]).toBe('public-read');
   });
 
   test('UmiPluginOss without params', () => {
@@ -85,7 +88,6 @@ describe('test index', () => {
     expect(keys[0].endsWith('success')).toBe(true);
     expect(messageQueue.get(keys[0])[0]).toBe('The following files will be uploaded to cdn.imhele.com/:\n'
       + 'umi.js    private\n'
-      + 'index.html    private\n'
       + 'static/image.png    private');
   });
 
@@ -104,8 +106,10 @@ describe('test index', () => {
           accessKeyId: 'test',
           accessKeySecret: 'test',
         });
-    }).toThrow();
-    expect(messageQueue.size).toBe(0);
+    }).not.toThrow();
+    expect(messageQueue.size).toBe(1);
+    const keys = Array.from(messageQueue.keys());
+    expect(keys[0].endsWith('error')).toBe(true);
   });
 
   test('UmiPluginOss with bucket', () => {
@@ -133,7 +137,6 @@ describe('test index', () => {
     expect(keys[0].endsWith('success')).toBe(true);
     expect(messageQueue.get(keys[0])[0]).toBe('The following files will be uploaded to imhele/:\n'
       + 'umi.js    private\n'
-      + 'index.html    private\n'
       + 'static/image.png    private');
   });
 
@@ -153,7 +156,6 @@ describe('test index', () => {
     expect(keys[0].endsWith('success')).toBe(true);
     expect(messageQueue.get(keys[0])[0]).toBe('The following files will be uploaded to cdn.imhele.com/:\n'
       + 'umi.js    public-read\n'
-      + 'index.html    private\n'
       + 'static/image.png    private');
   });
 
@@ -164,11 +166,15 @@ describe('test index', () => {
         accessKeyId: 'test',
         accessKeySecret: 'test',
         ignore: {
+          extname: ['.html'],
           sizeBetween: [[0, 1000]],
         },
       });
     }).not.toThrow();
     expect(messageQueue.size).toBe(1);
+    const keys = Array.from(messageQueue.keys());
+    expect(keys[0].endsWith('success')).toBe(true);
+    expect(messageQueue.get(keys[0])[0]).toBe('There is nothing need to upload.');
   });
 
   test('UmiPluginOss with bijection', () => {
@@ -185,7 +191,6 @@ describe('test index', () => {
     expect(keys[0].endsWith('success')).toBe(true);
     expect(messageQueue.get(keys[0])[0]).toBe('The following files will be uploaded to cdn.imhele.com/:\n'
       + 'umi.js    private\n'
-      + 'index.html    private\n'
       + 'static/image.png    private');
   });
 
@@ -201,7 +206,7 @@ describe('test index', () => {
           accessKeyId: 'test',
           accessKeySecret: 'test',
           bijection: true,
-        }
+        },
       );
     }).not.toThrow();
   });

@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc -p .",
     "coverage": "cat ./coverage/lcov.info | coveralls",
-    "lint": "tslint \"src/**/*.ts\"",
+    "lint": "tslint \"src/**/*.ts\" \"test/**/*.ts\"",
     "move-lib": "cp -r ./lib ./examples/base/node_modules/umi-plugin-oss/lib",
     "move-lib:win": "xcopy /y .\\lib .\\examples\\base\\node_modules\\umi-plugin-oss\\lib",
     "precommit": "lint-staged",
