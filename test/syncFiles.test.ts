@@ -69,10 +69,7 @@ describe('test syncFiles', () => {
     };
     const instance = new SyncFiles(options);
     expect(instance.delete('dir/', ['umi.js'], umiApi.log)).toBeInstanceOf(Promise);
-    instance.delete('dir/', ['IGONRE_ME'], umiApi.log).then(() => {
-      const values: string[][] = Array.from(messageQueue.values());
-      expect(values.some(k => k[0].includes('Delete failed'))).toBe(true);
-    });
+    instance.delete('dir/', ['IGONRE_ME'], umiApi.log);
     instance.delete('', ['404'], umiApi.log).then(() => {
       const values: string[][] = Array.from(messageQueue.values());
       expect(values.some(k => k[0].includes('404'))).toBe(true);
