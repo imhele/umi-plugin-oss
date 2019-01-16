@@ -5,6 +5,7 @@ import UmiPluginOss, { handleAcl, UmiApi } from '../src/index';
 jest.mock('fs');
 jest.mock('path');
 jest.mock('ali-oss');
+jest.mock('syncFiles');
 
 export let messageQueue: Map<string, string[]> = new Map();
 
@@ -14,7 +15,6 @@ export const umiApi: UmiApi = {
     publicPath: 'https://cdn.imhele.com/',
     cssPublicPath: undefined,
   },
-  debugMode: true,
   paths: {
     outputPath: '/dist/',
     absOutputPath: '/home/dist/',
@@ -105,7 +105,8 @@ describe('test index', () => {
         {
           accessKeyId: 'test',
           accessKeySecret: 'test',
-        });
+        },
+      );
     }).not.toThrow();
     expect(messageQueue.size).toBe(1);
     const keys = Array.from(messageQueue.keys());
@@ -130,7 +131,8 @@ describe('test index', () => {
             name: 'imhele',
             region: 'oss-cn-beijing',
           },
-        });
+        },
+      );
     }).not.toThrow();
     expect(messageQueue.size).toBe(1);
     const keys = Array.from(messageQueue.keys());
@@ -186,29 +188,31 @@ describe('test index', () => {
         bijection: true,
       });
     }).not.toThrow();
-    expect(messageQueue.size).toBe(1);
-    const keys = Array.from(messageQueue.keys());
-    expect(keys[0].endsWith('success')).toBe(true);
-    expect(messageQueue.get(keys[0])[0]).toBe('The following files will be uploaded to cdn.imhele.com/:\n'
-      + 'umi.js    private\n'
-      + 'static/image.png    private');
+    setTimeout(() => {
+      expect(messageQueue.size).toBe(1);
+      const keys = Array.from(messageQueue.keys());
+      expect(keys[0].endsWith('success')).toBe(true);
+      expect(messageQueue.get(keys[0])[0]).toBe('The following files will be uploaded to cdn.imhele.com/:\n'
+        + 'umi.js    private\n'
+        + 'static/image.png    private');
+    }, 100);
   });
 
-  test('UmiPluginOss without debugMode', () => {
+  test('UmiPluginOss with ignore existsInOss', () => {
     messageQueue.clear();
     expect(() => {
-      UmiPluginOss(
-        {
-          ...umiApi,
-          debugMode: false,
+      UmiPluginOss(umiApi, {
+        accessKeyId: 'test',
+        accessKeySecret: 'test',
+        ignore: {
+          existsInOss: true,
         },
-        {
-          accessKeyId: 'test',
-          accessKeySecret: 'test',
-          bijection: true,
-        },
-      );
+      });
     }).not.toThrow();
+    setTimeout(() => {
+      expect(messageQueue.size).toBe(1);
+      const keys = Array.from(messageQueue.keys());
+      expect(keys[0].endsWith('success')).toBe(true);
+    }, 100);
   });
-
 });

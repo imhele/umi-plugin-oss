@@ -8,7 +8,6 @@ export interface UmiApi {
     publicPath?: string;
     cssPublicPath?: string;
   };
-  debugMode?: boolean;
   paths: {
     outputPath: string;
     absOutputPath: string;
@@ -52,6 +51,8 @@ export interface UmiPluginOssOptions extends OSSOptions {
     existsInOss?: boolean;
     sizeBetween?: Array<[number, number]>;
   };
+  waitBeforeDelete?: number;
+  waitBeforeUpload?: number;
 }
 
 export const defaultOptions: UmiPluginOssOptions = {
@@ -61,6 +62,8 @@ export const defaultOptions: UmiPluginOssOptions = {
   },
   headers: {},
   ignore: {},
+  waitBeforeDelete: 3,
+  waitBeforeUpload: 0,
 };
 
 export const handleAcl = (rule: RegExp | string[], fileInfoArr: FileInfo[], acl: ACLType) => {
@@ -116,58 +119,72 @@ export default function (api: UmiApi, options?: UmiPluginOssOptions) {
     // create instance
     const syncFiles = new SyncFiles({ ...options, cname });
 
-    // list exists files
-    let existsFileArr: string[] = [];
-    if (options.bijection || options.ignore.existsInOss) {
-      existsFileArr = syncFiles.list(prefix);
-      // @TODO
-    }
-
-    // filter unnecessary files
-    const { absOutputPath } = api.paths;
-    let fileInfoArr: FileInfo[] = readdirSync(absOutputPath)
-      .map(name => (<FileInfo>[name, path.join(absOutputPath, name), 'private']))
-      .concat(readdirSync(path.join(absOutputPath, 'static'))
-        .map(name => (<FileInfo>[`static/${name}`, path.join(absOutputPath, 'static', name), 'private'])))
-      .filter(filePath => !extname.includes(path.extname(filePath[0])));
-    if (Array.isArray(options.ignore.sizeBetween)) {
-      fileInfoArr = fileInfoArr.filter(filePath => {
-        const stat = statSync(filePath[1]);
-        if (!stat.isFile()) return false;
-        return !options.ignore.sizeBetween.some(([min, max]) => {
-          return stat.size >= min && stat.size <= max;
+    (async function () {
+      // filter unnecessary files
+      const { absOutputPath } = api.paths;
+      let fileInfoArr: FileInfo[] = readdirSync(absOutputPath)
+        .map(name => (<FileInfo>[name, path.join(absOutputPath, name), 'private']))
+        .concat(readdirSync(path.join(absOutputPath, 'static'))
+          .map(name => (<FileInfo>[`static/${name}`, path.join(absOutputPath, 'static', name), 'private'])))
+        .filter(filePath => !extname.includes(path.extname(filePath[0])));
+      if (Array.isArray(options.ignore.sizeBetween)) {
+        fileInfoArr = fileInfoArr.filter(filePath => {
+          const stat = statSync(filePath[1]);
+          if (!stat.isFile()) return false;
+          return !options.ignore.sizeBetween.some(([min, max]) => {
+            return stat.size >= min && stat.size <= max;
+          });
         });
-      });
-    } else {
-      fileInfoArr = fileInfoArr.filter(filePath => statSync(filePath[1]).isFile());
-    }
+      } else {
+        fileInfoArr = fileInfoArr.filter(filePath => statSync(filePath[1]).isFile());
+      }
 
-    // handle files' acl
-    options.acl = options.acl || options.headers['x-oss-object-acl'] || 'private';
-    if (typeof options.acl === 'string') {
-      fileInfoArr.forEach(fileInfo => fileInfo[2] = <FileInfo[2]>options.acl);
-    } else {
-      (<ACLRule>options.acl).else = (<ACLRule>options.acl).else || 'private';
-      fileInfoArr.forEach(fileInfo => fileInfo[2] = (<ACLRule>options.acl).else);
-      const { publicReadWrite, publicRead, private: privateAcl } = <ACLRule>options.acl;
-      handleAcl(publicReadWrite, fileInfoArr, 'public-read-write');
-      handleAcl(publicRead, fileInfoArr, 'public-read');
-      handleAcl(privateAcl, fileInfoArr, 'private');
-    }
+      // list exists files
+      if (options.bijection || options.ignore.existsInOss) {
+        const existsFileArr = await syncFiles.list(prefix, api.log);
+        if (options.bijection) {
+          const delFileArr = existsFileArr.filter(filename => {
+            return fileInfoArr.some(fileInfo => fileInfo[0] === filename);
+          });
+          api.log.debug(`The following files will be delete:\n${delFileArr.join('\n')}`);
+          const deleteCosts = await syncFiles.upload(prefix, fileInfoArr, api.log);
+          api.log.success(`Deleted in ${deleteCosts / 1000}s`);
+        }
+        if (options.ignore.existsInOss) {
+          fileInfoArr = fileInfoArr.filter(fileInfo => {
+            return existsFileArr.includes(fileInfo[0]);
+          });
+        }
+      }
 
-    // Empty list
-    if (!fileInfoArr.length) {
-      // @TODO: bijection => delete files
-      return api.log.success('There is nothing need to upload.');
-    }
+      // handle files' acl
+      options.acl = options.acl || options.headers['x-oss-object-acl'] || 'private';
+      if (typeof options.acl === 'string') {
+        fileInfoArr.forEach(fileInfo => fileInfo[2] = <FileInfo[2]>options.acl);
+      } else {
+        (<ACLRule>options.acl).else = (<ACLRule>options.acl).else || 'private';
+        fileInfoArr.forEach(fileInfo => fileInfo[2] = (<ACLRule>options.acl).else);
+        const { publicReadWrite, publicRead, private: privateAcl } = <ACLRule>options.acl;
+        handleAcl(publicReadWrite, fileInfoArr, 'public-read-write');
+        handleAcl(publicRead, fileInfoArr, 'public-read');
+        handleAcl(privateAcl, fileInfoArr, 'private');
+      }
 
-    // upload and print results
-    api.log.success(`The following files will be uploaded to ${
-      endpoint || options.bucket.name
-      }/${prefix}:\n${
-      fileInfoArr.map(fileInfo => `${fileInfo[0]}    ${fileInfo[2]}`).join('\n')
-      }`);
-    if (!api.debugMode)
-      syncFiles.upload(prefix, fileInfoArr, api.log).then(time => api.log.success(`Total: ${time / 1000}s`));
+      // Empty list
+      if (!fileInfoArr.length) {
+        // @TODO: bijection => delete files
+        return api.log.success('There is nothing need to upload.');
+      }
+
+      // upload and print results
+      api.log.success(`The following files will be uploaded to ${
+        endpoint || options.bucket.name
+        }/${prefix}:\n${
+        fileInfoArr.map(fileInfo => `${fileInfo[0]}    ${fileInfo[2]}`).join('\n')
+        }`);
+
+      const uploadCosts = await syncFiles.upload(prefix, fileInfoArr, api.log);
+      api.log.success(`Uploaded in ${uploadCosts / 1000}s`);
+    })();
   });
 }

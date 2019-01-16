@@ -1,6 +1,6 @@
 import 'jest';
 import { umiApi, messageQueue } from './index.test';
-import SyncFiles, { OSSOptions } from '../src/syncFiles';
+import SyncFiles, { SyncFilesOptions, wait } from '../src/syncFiles';
 
 jest.mock('fs');
 jest.mock('ali-oss');
@@ -11,20 +11,18 @@ describe('test syncFiles', () => {
     expect(() => {
       new SyncFiles({}); // tslint:disable-line
     }).toThrow();
+    expect(wait(1)).toBeInstanceOf(Promise);
   });
 
   test('SyncFiles.upload', () => {
     messageQueue.clear();
-    const options: OSSOptions = {
+    const options: SyncFilesOptions = {
       accessKeyId: 'test',
       accessKeySecret: 'test',
       bucket: {
         name: 'name',
       },
     };
-    expect(() => {
-      new SyncFiles(options); // tslint:disable-line
-    }).not.toThrow();
     const instance = new SyncFiles(options);
     expect(instance.upload('', [], umiApi.log)).toBeInstanceOf(Promise);
     expect(() => {
@@ -42,18 +40,42 @@ describe('test syncFiles', () => {
   });
 
   test('SyncFiles.list', () => {
-    const options: OSSOptions = {
+    messageQueue.clear();
+    const options: SyncFilesOptions = {
       accessKeyId: 'test',
       accessKeySecret: 'test',
       bucket: {
         name: 'name',
       },
     };
-    expect(() => {
-      new SyncFiles(options); // tslint:disable-line
-    }).not.toThrow();
     const instance = new SyncFiles(options);
-    expect(instance.list()).toBe(null);
-    expect(instance.list('/')).toBe(null);
+    instance.list('test/in/syncFiles/', umiApi.log).then(existsFileArr => {
+      expect(existsFileArr).toMatchObject(['test.png']);
+    });
+    instance.list('404', umiApi.log).then(existsFileArr => {
+      expect(existsFileArr.length).toBe(0);
+      expect(messageQueue.size).toBe(1);
+    });
+  });
+
+  test('SyncFiles.delete', () => {
+    messageQueue.clear();
+    const options: SyncFilesOptions = {
+      accessKeyId: 'test',
+      accessKeySecret: 'test',
+      bucket: {
+        name: 'name',
+      },
+    };
+    const instance = new SyncFiles(options);
+    expect(instance.delete('dir/', ['umi.js'], umiApi.log)).toBeInstanceOf(Promise);
+    instance.delete('dir/', ['IGONRE_ME'], umiApi.log).then(() => {
+      const values: string[][] = Array.from(messageQueue.values());
+      expect(values.some(k => k[0].includes('Delete failed'))).toBe(true);
+    });
+    instance.delete('', ['404'], umiApi.log).then(() => {
+      const values: string[][] = Array.from(messageQueue.values());
+      expect(values.some(k => k[0].includes('404'))).toBe(true);
+    });
   });
 });

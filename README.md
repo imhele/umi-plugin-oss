@@ -29,10 +29,10 @@ export default {
 ### Overview
 
 ```ts
-interface OSSOptions {
+interface Options {
   accessKeyId?: string;
   accessKeySecret?: string;
-  acl?: 'public-read-write' | 'public-read' | 'private';
+  acl?: ACLType | ACLRule;
   bijection?: boolean;
   bucket?: {
     name: string;
@@ -58,6 +58,17 @@ interface OSSOptions {
   secure?: boolean;
   stsToken?: string;
   timeout?: number;
+  waitBeforeDelete?: number;
+  waitBeforeUpload?: number;
+}
+
+type ACLType = 'public-read-write' | 'public-read' | 'private';
+
+interface ACLRule {
+  private?: RegExp | string[];
+  publicRead?: RegExp | string[];
+  publicReadWrite?: RegExp | string[];
+  else?: ACLType;
 }
 ```
 

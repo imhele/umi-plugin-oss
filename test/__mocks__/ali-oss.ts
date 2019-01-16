@@ -18,8 +18,37 @@ export default class OSS {
     } catch (err) {
       return ({
         name: targetKey,
-        res: err.toString(),
+        res: {
+          status: 200,
+        },
       });
     }
+  }
+  public async list(options: { prefix: string, marker: string }) {
+    if (options.prefix === 'test/in/syncFiles/') {
+      return ({
+        nextMarker: <null>null,
+        objects: <object[]>[{ name: 'test/in/syncFiles/test.png' }],
+        res: {
+          status: 200,
+        },
+      });
+    } else {
+      return ({
+        nextMarker: <null>null,
+        objects: <object[]>[],
+        res: {
+          status: options.prefix === '404' ? 404 : 200,
+        },
+      });
+    }
+  }
+  public async deleteMulti(delFileArr: string[]) {
+    return ({
+      deleted: delFileArr.filter(f => !f.endsWith('IGONRE_ME')),
+      res: {
+        status: delFileArr.includes('404') ? 404 : 200,
+      },
+    });
   }
 };
