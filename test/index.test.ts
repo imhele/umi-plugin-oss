@@ -29,23 +29,23 @@ export const umiApi: UmiApi = {
   registerCommand: () => { },
   log: {
     success: (...messages: string[]) => {
-      messageQueue.set(`${Date.now()}|success`, messages);
+      messageQueue.set(`${Date.now()}.${Math.random()}|success`, messages);
     },
     error: (...messages: string[]) => {
-      messageQueue.set(`${Date.now()}|error`, messages);
+      messageQueue.set(`${Date.now()}.${Math.random()}|error`, messages);
     },
     debug: (...messages: string[]) => {
-      messageQueue.set(`${Date.now()}|debug`, messages);
+      messageQueue.set(`${Date.now()}.${Math.random()}|debug`, messages);
     },
     pending: (...messages: string[]) => {
-      messageQueue.set(`${Date.now()}|pending`, messages);
+      messageQueue.set(`${Date.now()}.${Math.random()}|pending`, messages);
     },
     watch: (...messages: string[]) => {
-      messageQueue.set(`${Date.now()}|watch`, messages);
+      messageQueue.set(`${Date.now()}.${Math.random()}|watch`, messages);
     },
   },
   debug: (message: string) => {
-    messageQueue.set(`${Date.now()}|debug`, [message]);
+    messageQueue.set(`${Date.now()}.${Math.random()}|debug`, [message]);
   },
   onBuildSuccess: (callback) => { callback(); },
 };
@@ -195,7 +195,7 @@ describe('test index', () => {
       expect(messageQueue.get(keys[0])[0]).toBe('The following files will be uploaded to cdn.imhele.com/:\n'
         + 'umi.js    private\n'
         + 'static/image.png    private');
-    }, 100);
+    }, 10);
   });
 
   test('UmiPluginOss with ignore existsInOss', () => {
@@ -213,6 +213,6 @@ describe('test index', () => {
       expect(messageQueue.size).toBe(1);
       const keys = Array.from(messageQueue.keys());
       expect(keys[0].endsWith('success')).toBe(true);
-    }, 100);
+    }, 10);
   });
 });

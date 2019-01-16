@@ -14,7 +14,7 @@ describe('test syncFiles', () => {
     expect(wait(1)).toBeInstanceOf(Promise);
   });
 
-  test('SyncFiles.upload', () => {
+  test('SyncFiles.upload', async () => {
     messageQueue.clear();
     const options: SyncFilesOptions = {
       accessKeyId: 'test',
@@ -24,22 +24,19 @@ describe('test syncFiles', () => {
       },
     };
     const instance = new SyncFiles(options);
-    expect(instance.upload('', [], umiApi.log)).toBeInstanceOf(Promise);
-    expect(() => {
-      instance.upload('', [
-        ['200', '/home/notexist/umi.js', 'private'],
-        ['403', '/home/notexist/umi.js', 'private'],
-      ], umiApi.log).then(time => {
-        expect(typeof time === 'number').toBe(true);
-        const keys = Array.from(messageQueue.keys());
-        const error = keys.find(k => k.endsWith('error'));
-        expect(error).not.toBe(undefined);
-        expect(messageQueue.get(error)[0]).toBe('403');
-      });
-    }).not.toThrow();
+    await instance.upload('', [], umiApi.log);
+    const time = await instance.upload('', [
+      ['200', '/home/notexist/umi.js', 'private'],
+      ['403', '/home/notexist/umi.js', 'private'],
+    ], umiApi.log);
+    expect(typeof time === 'number').toBe(true);
+    const keys = Array.from(messageQueue.keys());
+    const error = keys.find(k => k.endsWith('error'));
+    expect(error).not.toBe(undefined);
+    expect(messageQueue.get(error)[0]).toBe('403');
   });
 
-  test('SyncFiles.list', () => {
+  test('SyncFiles.list', async () => {
     messageQueue.clear();
     const options: SyncFilesOptions = {
       accessKeyId: 'test',
@@ -49,16 +46,14 @@ describe('test syncFiles', () => {
       },
     };
     const instance = new SyncFiles(options);
-    instance.list('test/in/syncFiles/', umiApi.log).then(existsFileArr => {
-      expect(existsFileArr).toMatchObject(['test.png']);
-    });
-    instance.list('404', umiApi.log).then(existsFileArr => {
-      expect(existsFileArr.length).toBe(0);
-      expect(messageQueue.size).toBe(1);
-    });
+    const existsFileArr = await instance.list('test/in/syncFiles/', umiApi.log);
+    const existsFileArrB = await instance.list('404', umiApi.log);
+    expect(existsFileArr).toMatchObject(['test.png']);
+    expect(existsFileArrB.length).toBe(0);
+    expect(messageQueue.size).toBe(1);
   });
 
-  test('SyncFiles.delete', () => {
+  test('SyncFiles.delete', async () => {
     messageQueue.clear();
     const options: SyncFilesOptions = {
       accessKeyId: 'test',
@@ -68,11 +63,11 @@ describe('test syncFiles', () => {
       },
     };
     const instance = new SyncFiles(options);
-    expect(instance.delete('dir/', ['umi.js'], umiApi.log)).toBeInstanceOf(Promise);
-    instance.delete('dir/', ['IGONRE_ME'], umiApi.log);
-    instance.delete('', ['404'], umiApi.log).then(() => {
-      const values: string[][] = Array.from(messageQueue.values());
-      expect(values.some(k => k[0].includes('404'))).toBe(true);
-    });
+    await instance.delete('dir/', ['umi.js'], umiApi.log);
+    await instance.delete('dir/', ['IGONRE_ME'], umiApi.log);
+    await instance.delete('', ['404'], umiApi.log);
+    const values: string[][] = Array.from(messageQueue.values());
+    expect(values.some(k => k[0].includes('404'))).toBe(true);
+    expect(values.some(k => k[0].includes('Delete failed'))).toBe(true);
   });
 });
