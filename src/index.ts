@@ -123,10 +123,16 @@ export default function (api: UmiApi, options?: UmiPluginOssOptions) {
       // filter unnecessary files
       const { absOutputPath } = api.paths;
       let fileInfoArr: FileInfo[] = readdirSync(absOutputPath)
-        .map(name => (<FileInfo>[name, path.join(absOutputPath, name), 'private']))
-        .concat(readdirSync(path.join(absOutputPath, 'static'))
-          .map(name => (<FileInfo>[`static/${name}`, path.join(absOutputPath, 'static', name), 'private'])))
-        .filter(filePath => !extname.includes(path.extname(filePath[0])));
+        .map(name => (<FileInfo>[name, path.join(absOutputPath, name), 'private']));
+      if (fileInfoArr.some(fileInfo => fileInfo[0] === 'static')) {
+        const staticDir = path.join(absOutputPath, 'static');
+        if (statSync(staticDir).isDirectory()) {
+          fileInfoArr = fileInfoArr.concat(readdirSync(staticDir).map(name => {
+            return (<FileInfo>[`static/${name}`, path.join(staticDir, name), 'private']);
+          }));
+        }
+      }
+      fileInfoArr = fileInfoArr.filter(filePath => !extname.includes(path.extname(filePath[0])));
       if (Array.isArray(options.ignore.sizeBetween)) {
         fileInfoArr = fileInfoArr.filter(filePath => {
           const stat = statSync(filePath[1]);

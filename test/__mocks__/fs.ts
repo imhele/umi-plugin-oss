@@ -15,6 +15,9 @@ export function statSync(path: string): object {
       isFile() {
         return false;
       },
+      isDirectory() {
+        return true;
+      },
     });
   } else if (path.endsWith('.js')) {
     return ({
