@@ -118,7 +118,7 @@ export default function (api: IApi, options?: UmiPluginOssOptions) {
         const existsFileArr = await syncFiles.list(prefix, api);
         if (options.bijection) {
           const delFileArr = existsFileArr.filter(filename => {
-            return fileInfoArr.some(fileInfo => fileInfo[0] !== filename);
+            return !fileInfoArr.some(fileInfo => fileInfo[0] === filename);
           });
           api.log.success(`The following files will be delete:\n${delFileArr.join('\n')}`);
           const deleteCosts = await syncFiles.delete(prefix, delFileArr, api);
