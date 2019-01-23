@@ -1,5 +1,5 @@
 import 'jest';
-import { IApi, IOnBuildSuccessFunc } from 'umi-plugin-types';
+import { IOnBuildSuccessFunc } from 'umi-plugin-types';
 import { FileInfo } from '../src/syncFiles';
 import UmiPluginOss, { handleAcl } from '../src/index';
 
@@ -17,12 +17,6 @@ export const umiApi = {
   paths: {
     outputPath: '/dist/',
     absOutputPath: '/home/dist/',
-    pagesPath: '',
-    absPagesPath: '',
-    tmpDirPath: '',
-    absTmpDirPath: '',
-    absSrcPath: '',
-    cwd: '',
   },
   registerCommand: () => { },
   log: {
