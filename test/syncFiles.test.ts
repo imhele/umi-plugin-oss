@@ -24,11 +24,11 @@ describe('test syncFiles', () => {
       },
     };
     const instance = new SyncFiles(options);
-    await instance.upload('', [], umiApi.log);
+    await instance.upload('', [], umiApi as any);
     const time = await instance.upload('', [
       ['200', '/home/notexist/umi.js', 'private'],
       ['403', '/home/notexist/umi.js', 'private'],
-    ], umiApi.log);
+    ], umiApi as any);
     expect(typeof time === 'number').toBe(true);
     const keys = Array.from(messageQueue.keys());
     const error = keys.find(k => k.endsWith('error'));
@@ -46,8 +46,8 @@ describe('test syncFiles', () => {
       },
     };
     const instance = new SyncFiles(options);
-    const existsFileArr = await instance.list('test/in/syncFiles/', umiApi.log);
-    const existsFileArrB = await instance.list('404', umiApi.log);
+    const existsFileArr = await instance.list('test/in/syncFiles/', umiApi as any);
+    const existsFileArrB = await instance.list('404', umiApi as any);
     expect(existsFileArr).toMatchObject(['test.png']);
     expect(existsFileArrB.length).toBe(0);
     expect(messageQueue.size).toBe(1);
@@ -63,9 +63,9 @@ describe('test syncFiles', () => {
       },
     };
     const instance = new SyncFiles(options);
-    await instance.delete('dir/', ['umi.js'], umiApi.log);
-    await instance.delete('dir/', ['IGONRE_ME'], umiApi.log);
-    await instance.delete('', ['404'], umiApi.log);
+    await instance.delete('dir/', ['umi.js'], umiApi as any);
+    await instance.delete('dir/', ['IGONRE_ME'], umiApi as any);
+    await instance.delete('', ['404'], umiApi as any);
     const values: string[][] = Array.from(messageQueue.values());
     expect(values.some(k => k[0].includes('404'))).toBe(true);
     expect(values.some(k => k[0].includes('Delete failed'))).toBe(true);

@@ -1,6 +1,7 @@
 import 'jest';
+import { IApi, IOnBuildSuccessFunc } from 'umi-plugin-types';
 import { FileInfo } from '../src/syncFiles';
-import UmiPluginOss, { handleAcl, UmiApi } from '../src/index';
+import UmiPluginOss, { handleAcl } from '../src/index';
 
 jest.mock('fs');
 jest.mock('path');
@@ -9,11 +10,9 @@ jest.mock('syncFiles');
 
 export let messageQueue: Map<string, string[]> = new Map();
 
-export const umiApi: UmiApi = {
+export const umiApi = {
   config: {
-    base: undefined,
     publicPath: 'https://cdn.imhele.com/',
-    cssPublicPath: undefined,
   },
   paths: {
     outputPath: '/dist/',
@@ -25,7 +24,6 @@ export const umiApi: UmiApi = {
     absSrcPath: '',
     cwd: '',
   },
-  routes: [],
   registerCommand: () => { },
   log: {
     success: (...messages: string[]) => {
@@ -34,20 +32,14 @@ export const umiApi: UmiApi = {
     error: (...messages: string[]) => {
       messageQueue.set(`${Date.now()}.${Math.random()}|error`, messages);
     },
-    debug: (...messages: string[]) => {
-      messageQueue.set(`${Date.now()}.${Math.random()}|debug`, messages);
-    },
     pending: (...messages: string[]) => {
       messageQueue.set(`${Date.now()}.${Math.random()}|pending`, messages);
-    },
-    watch: (...messages: string[]) => {
-      messageQueue.set(`${Date.now()}.${Math.random()}|watch`, messages);
     },
   },
   debug: (message: string) => {
     messageQueue.set(`${Date.now()}.${Math.random()}|debug`, [message]);
   },
-  onBuildSuccess: (callback) => { callback(); },
+  onBuildSuccess: (callback: IOnBuildSuccessFunc) => { callback(undefined); },
 };
 
 describe('test index', () => {
@@ -70,7 +62,7 @@ describe('test index', () => {
   test('UmiPluginOss without params', () => {
     messageQueue.clear();
     expect(() => {
-      UmiPluginOss(umiApi, {});
+      UmiPluginOss(umiApi as any, {});
     }).toThrow();
     expect(messageQueue.size).toBe(0);
   });
@@ -78,7 +70,7 @@ describe('test index', () => {
   test('UmiPluginOss with default options', () => {
     messageQueue.clear();
     expect(() => {
-      UmiPluginOss(umiApi, {
+      UmiPluginOss(umiApi as any, {
         accessKeyId: 'test',
         accessKeySecret: 'test',
       });
@@ -101,7 +93,7 @@ describe('test index', () => {
             ...umiApi.config,
             publicPath: undefined,
           },
-        },
+        } as any,
         {
           accessKeyId: 'test',
           accessKeySecret: 'test',
@@ -123,7 +115,7 @@ describe('test index', () => {
             ...umiApi.config,
             publicPath: undefined,
           },
-        },
+        } as any,
         {
           accessKeyId: 'test',
           accessKeySecret: 'test',
@@ -145,7 +137,7 @@ describe('test index', () => {
   test('UmiPluginOss with RegExp acl rule', () => {
     messageQueue.clear();
     expect(() => {
-      UmiPluginOss(umiApi, {
+      UmiPluginOss(umiApi as any, {
         accessKeyId: 'test',
         accessKeySecret: 'test',
         acl: {
@@ -164,7 +156,7 @@ describe('test index', () => {
   test('UmiPluginOss with ignore filter', () => {
     messageQueue.clear();
     expect(() => {
-      UmiPluginOss(umiApi, {
+      UmiPluginOss(umiApi as any, {
         accessKeyId: 'test',
         accessKeySecret: 'test',
         ignore: {
@@ -182,7 +174,7 @@ describe('test index', () => {
   test('UmiPluginOss with bijection', () => {
     messageQueue.clear();
     expect(() => {
-      UmiPluginOss(umiApi, {
+      UmiPluginOss(umiApi as any, {
         accessKeyId: 'test',
         accessKeySecret: 'test',
         bijection: true,
@@ -201,7 +193,7 @@ describe('test index', () => {
   test('UmiPluginOss with ignore existsInOss', () => {
     messageQueue.clear();
     expect(() => {
-      UmiPluginOss(umiApi, {
+      UmiPluginOss(umiApi as any, {
         accessKeyId: 'test',
         accessKeySecret: 'test',
         ignore: {

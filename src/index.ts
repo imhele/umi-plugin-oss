@@ -1,39 +1,7 @@
 import path from 'path';
+import { IApi } from 'umi-plugin-types';
 import { readdirSync, statSync } from 'fs';
 import SyncFiles, { ACLType, OSSOptions, FileInfo } from './syncFiles';
-
-export interface UmiApi {
-  config: {
-    base?: string;
-    publicPath?: string;
-    cssPublicPath?: string;
-  };
-  paths: {
-    outputPath: string;
-    absOutputPath: string;
-    pagesPath: string;
-    absPagesPath: string;
-    tmpDirPath: string;
-    absTmpDirPath: string;
-    absSrcPath: string;
-    cwd: string;
-  };
-  routes: Array<{
-    path: string;
-    component: string;
-    [key: string]: any;
-  }>;
-  registerCommand: (name: string, options: {}, fun: (args: string[]) => void) => void; // @TODO
-  log: {
-    success: (...messages: string[]) => void;
-    error: (...messages: string[]) => void;
-    debug: (...messages: string[]) => void;
-    pending: (...messages: string[]) => void;
-    watch: (...messages: string[]) => void;
-  };
-  debug: (message: string) => void;
-  onBuildSuccess: (callback: () => void) => void;
-}
 
 export interface ACLRule {
   private?: RegExp | string[];
@@ -82,7 +50,7 @@ export const handleAcl = (rule: RegExp | string[], fileInfoArr: FileInfo[], acl:
   }
 };
 
-export default function (api: UmiApi, options?: UmiPluginOssOptions) {
+export default function (api: IApi, options?: UmiPluginOssOptions) {
   api.onBuildSuccess((): void => {
     // default value
     options = {
@@ -147,13 +115,13 @@ export default function (api: UmiApi, options?: UmiPluginOssOptions) {
 
       // list exists files
       if (options.bijection || options.ignore.existsInOss) {
-        const existsFileArr = await syncFiles.list(prefix, api.log);
+        const existsFileArr = await syncFiles.list(prefix, api);
         if (options.bijection) {
           const delFileArr = existsFileArr.filter(filename => {
             return fileInfoArr.some(fileInfo => fileInfo[0] === filename);
           });
-          api.log.debug(`The following files will be delete:\n${delFileArr.join('\n')}`);
-          const deleteCosts = await syncFiles.upload(prefix, fileInfoArr, api.log);
+          api.debug(`The following files will be delete:\n${delFileArr.join('\n')}`);
+          const deleteCosts = await syncFiles.upload(prefix, fileInfoArr, api);
           api.log.success(`Deleted in ${deleteCosts / 1000}s`);
         }
         if (options.ignore.existsInOss) {
@@ -189,7 +157,7 @@ export default function (api: UmiApi, options?: UmiPluginOssOptions) {
         fileInfoArr.map(fileInfo => `${fileInfo[0]}    ${fileInfo[2]}`).join('\n')
         }`);
 
-      const uploadCosts = await syncFiles.upload(prefix, fileInfoArr, api.log);
+      const uploadCosts = await syncFiles.upload(prefix, fileInfoArr, api);
       api.log.success(`Uploaded in ${uploadCosts / 1000}s`);
     })();
   });
