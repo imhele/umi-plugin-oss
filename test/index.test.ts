@@ -1,6 +1,6 @@
 import 'jest';
+import { FileInfo, wait } from '../src/syncFiles';
 import { IOnBuildSuccessFunc } from 'umi-plugin-types';
-import { FileInfo } from '../src/syncFiles';
 import UmiPluginOss, { handleAcl } from '../src/index';
 
 jest.mock('fs');
@@ -18,7 +18,7 @@ export const umiApi = {
     outputPath: '/dist/',
     absOutputPath: '/home/dist/',
   },
-  registerCommand: () => { },
+  registerCommand: () => {},
   log: {
     success: (...messages: string[]) => {
       messageQueue.set(`${Date.now()}.${Math.random()}|success`, messages);
@@ -33,7 +33,9 @@ export const umiApi = {
   debug: (message: string) => {
     messageQueue.set(`${Date.now()}.${Math.random()}|debug`, [message]);
   },
-  onBuildSuccess: (callback: IOnBuildSuccessFunc) => { callback(undefined); },
+  onBuildSuccess: (callback: IOnBuildSuccessFunc) => {
+    callback(undefined);
+  },
 };
 
 describe('test index', () => {
@@ -43,10 +45,7 @@ describe('test index', () => {
   });
 
   test('handleAcl', () => {
-    const fileInfoArr: FileInfo[] = [
-      ['umi.js', '/home/umi.js', 'private'],
-      ['test.js', '/home/test.js', 'private'],
-    ];
+    const fileInfoArr: FileInfo[] = [['umi.js', '/home/umi.js', 'private'], ['test.js', '/home/test.js', 'private']];
     expect(() => {
       handleAcl(['test.js'], fileInfoArr, 'public-read');
     }).not.toThrow();
@@ -61,7 +60,7 @@ describe('test index', () => {
     expect(messageQueue.size).toBe(0);
   });
 
-  test('UmiPluginOss with default options', () => {
+  test('UmiPluginOss with default options', async () => {
     messageQueue.clear();
     expect(() => {
       UmiPluginOss(umiApi as any, {
@@ -69,12 +68,15 @@ describe('test index', () => {
         accessKeySecret: 'test',
       });
     }).not.toThrow();
-    expect(messageQueue.size).toBe(1);
+    await wait(0.1);
+    expect(messageQueue.size).toBe(6);
     const keys = Array.from(messageQueue.keys());
     expect(keys[0].endsWith('success')).toBe(true);
-    expect(messageQueue.get(keys[0])[0]).toBe('The following files will be uploaded to cdn.imhele.com/:\n'
-      + 'umi.js    private\n'
-      + 'static/image.png    private');
+    expect(messageQueue.get(keys[0])[0]).toBe(
+      'The following files will be uploaded to cdn.imhele.com/:\n' +
+        'umi.js    private\n' +
+        'static/image.png    private',
+    );
   });
 
   test('UmiPluginOss without cname and bucket', () => {
@@ -99,7 +101,7 @@ describe('test index', () => {
     expect(keys[0].endsWith('error')).toBe(true);
   });
 
-  test('UmiPluginOss with bucket', () => {
+  test('UmiPluginOss with bucket', async () => {
     messageQueue.clear();
     expect(() => {
       UmiPluginOss(
@@ -120,15 +122,16 @@ describe('test index', () => {
         },
       );
     }).not.toThrow();
-    expect(messageQueue.size).toBe(1);
+    await wait(0.1);
+    expect(messageQueue.size).toBe(6);
     const keys = Array.from(messageQueue.keys());
     expect(keys[0].endsWith('success')).toBe(true);
-    expect(messageQueue.get(keys[0])[0]).toBe('The following files will be uploaded to imhele/:\n'
-      + 'umi.js    private\n'
-      + 'static/image.png    private');
+    expect(messageQueue.get(keys[0])[0]).toBe(
+      'The following files will be uploaded to imhele/:\n' + 'umi.js    private\n' + 'static/image.png    private',
+    );
   });
 
-  test('UmiPluginOss with RegExp acl rule', () => {
+  test('UmiPluginOss with RegExp acl rule', async () => {
     messageQueue.clear();
     expect(() => {
       UmiPluginOss(umiApi as any, {
@@ -139,12 +142,15 @@ describe('test index', () => {
         },
       });
     }).not.toThrow();
-    expect(messageQueue.size).toBe(1);
+    await wait(0.1);
+    expect(messageQueue.size).toBe(6);
     const keys = Array.from(messageQueue.keys());
     expect(keys[0].endsWith('success')).toBe(true);
-    expect(messageQueue.get(keys[0])[0]).toBe('The following files will be uploaded to cdn.imhele.com/:\n'
-      + 'umi.js    public-read\n'
-      + 'static/image.png    private');
+    expect(messageQueue.get(keys[0])[0]).toBe(
+      'The following files will be uploaded to cdn.imhele.com/:\n' +
+        'umi.js    public-read\n' +
+        'static/image.png    private',
+    );
   });
 
   test('UmiPluginOss with ignore filter', () => {
@@ -162,10 +168,10 @@ describe('test index', () => {
     expect(messageQueue.size).toBe(1);
     const keys = Array.from(messageQueue.keys());
     expect(keys[0].endsWith('success')).toBe(true);
-    expect(messageQueue.get(keys[0])[0]).toBe('There is nothing need to upload.');
+    expect(messageQueue.get(keys[0])[0]).toBe('There is nothing need to be uploaded.');
   });
 
-  test('UmiPluginOss with bijection', () => {
+  test('UmiPluginOss with bijection', async () => {
     messageQueue.clear();
     expect(() => {
       UmiPluginOss(umiApi as any, {
@@ -174,17 +180,20 @@ describe('test index', () => {
         bijection: true,
       });
     }).not.toThrow();
-    setTimeout(() => {
-      expect(messageQueue.size).toBe(1);
-      const keys = Array.from(messageQueue.keys());
-      expect(keys[0].endsWith('success')).toBe(true);
-      expect(messageQueue.get(keys[0])[0]).toBe('The following files will be uploaded to cdn.imhele.com/:\n'
-        + 'umi.js    private\n'
-        + 'static/image.png    private');
-    }, 10);
+    await wait(0.1);
+    expect(messageQueue.size).toBe(7);
+    const keys = Array.from(messageQueue.keys());
+    expect(keys[0].endsWith('success')).toBe(true);
+    expect(keys[1].endsWith('success')).toBe(true);
+    expect(messageQueue.get(keys[0])[0]).toBe('There is nothing need to be deleted.');
+    expect(messageQueue.get(keys[1])[0]).toBe(
+      'The following files will be uploaded to cdn.imhele.com/:\n' +
+        'umi.js    private\n' +
+        'static/image.png    private',
+    );
   });
 
-  test('UmiPluginOss with ignore existsInOss', () => {
+  test('UmiPluginOss with ignore existsInOss', async () => {
     messageQueue.clear();
     expect(() => {
       UmiPluginOss(umiApi as any, {
@@ -195,10 +204,9 @@ describe('test index', () => {
         },
       });
     }).not.toThrow();
-    setTimeout(() => {
-      expect(messageQueue.size).toBe(1);
-      const keys = Array.from(messageQueue.keys());
-      expect(keys[0].endsWith('success')).toBe(true);
-    }, 10);
+    await wait(0.1);
+    expect(messageQueue.size).toBe(1);
+    const keys = Array.from(messageQueue.keys());
+    expect(keys[0].endsWith('success')).toBe(true);
   });
 });

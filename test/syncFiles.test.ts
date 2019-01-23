@@ -25,10 +25,11 @@ describe('test syncFiles', () => {
     };
     const instance = new SyncFiles(options);
     await instance.upload('', [], umiApi as any);
-    const time = await instance.upload('', [
-      ['200', '/home/notexist/umi.js', 'private'],
-      ['403', '/home/notexist/umi.js', 'private'],
-    ], umiApi as any);
+    const time = await instance.upload(
+      '',
+      [['200', '/home/notexist/umi.js', 'private'], ['403', '/home/notexist/umi.js', 'private']],
+      umiApi as any,
+    );
     expect(typeof time === 'number').toBe(true);
     const keys = Array.from(messageQueue.keys());
     const error = keys.find(k => k.endsWith('error'));

@@ -117,12 +117,16 @@ export default function (api: IApi, options?: UmiPluginOssOptions) {
       if (options.bijection || options.ignore.existsInOss) {
         const existsFileArr = await syncFiles.list(prefix, api);
         if (options.bijection) {
-          const delFileArr = existsFileArr.filter(filename => {
+          const delFileArr: string[] = existsFileArr.filter(filename => {
             return !fileInfoArr.some(fileInfo => fileInfo[0] === filename);
           });
-          api.log.success(`The following files will be delete:\n${delFileArr.join('\n')}`);
-          const deleteCosts = await syncFiles.delete(prefix, delFileArr, api);
-          api.log.success(`Deleted in ${deleteCosts / 1000}s`);
+          if (delFileArr.length) {
+            api.log.success(`The following files will be deleted:\n${delFileArr.join('\n')}`);
+            const deleteCosts = await syncFiles.delete(prefix, delFileArr, api);
+            api.log.success(`Deleted in ${deleteCosts / 1000}s`);
+          } else {
+            api.log.success(`There is nothing need to be deleted.`);
+          }
         }
         if (options.ignore.existsInOss) {
           fileInfoArr = fileInfoArr.filter(fileInfo => {
@@ -147,7 +151,7 @@ export default function (api: IApi, options?: UmiPluginOssOptions) {
       // Empty list
       if (!fileInfoArr.length) {
         // @TODO: bijection => delete files
-        return api.log.success('There is nothing need to upload.');
+        return api.log.success('There is nothing need to be uploaded.');
       }
 
       // upload and print results
