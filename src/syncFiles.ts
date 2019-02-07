@@ -24,10 +24,11 @@ export interface OSSOptions {
   secure?: boolean;
   timeout?: number;
   bucket?: {
-    name: string;
-    region?: string;
+    name?: string;
+    cname?: boolean;
     endpoint?: string;
     internal?: boolean;
+    region?: string;
   };
   headers?: OssHeaders;
 }
@@ -51,7 +52,7 @@ export default class SyncFiles {
       accessKeyId: options.accessKeyId,
       accessKeySecret: options.accessKeySecret,
       bucket: options.bucket.name,
-      cname: options.cname,
+      cname: options.bucket.cname,
       endpoint: options.bucket.endpoint,
       internal: options.bucket.internal,
       region: options.bucket.region,
@@ -110,7 +111,7 @@ export default class SyncFiles {
         return !(<string[]>(result.deleted)).includes(targetKey);
       });
       if (failed.length) {
-        api.log.error(`Delete failed:\n${failed.join('\n')}`);
+        api.log.error(`Delete failed:\n${failed.join('\n')}\n`);
       }
     } else {
       api.log.error(JSON.stringify(result.res));

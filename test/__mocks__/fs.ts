@@ -1,6 +1,6 @@
 export function readdirSync(path: string): string[] {
   if (path.includes('static')) {
-    return ['image.png'];
+    return ['longlonglonglonglonglonglonglonglonglonglong-filename.png'];
   }
   return ['static', 'umi.js', 'index.html'];
 }
@@ -11,27 +11,27 @@ export function createReadStream(_: string): null {
 
 export function statSync(path: string): object {
   if (path.endsWith('static')) {
-    return ({
+    return {
       isFile() {
         return false;
       },
       isDirectory() {
         return true;
       },
-    });
+    };
   } else if (path.endsWith('.js')) {
-    return ({
+    return {
       isFile() {
         return true;
       },
       size: 1000,
-    });
+    };
   } else {
-    return ({
+    return {
       isFile() {
         return true;
       },
       size: 500,
-    });
+    };
   }
 }

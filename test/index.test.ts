@@ -11,9 +11,6 @@ jest.mock('syncFiles');
 export let messageQueue: Map<string, string[]> = new Map();
 
 export const umiApi = {
-  config: {
-    publicPath: 'https://cdn.imhele.com/',
-  },
   paths: {
     outputPath: '/dist/',
     absOutputPath: '/home/dist/',
@@ -52,10 +49,15 @@ describe('test index', () => {
     expect(fileInfoArr[1][2]).toBe('public-read');
   });
 
-  test('UmiPluginOss without params', () => {
+  test('UmiPluginOss without accessKey', () => {
     messageQueue.clear();
     expect(() => {
-      UmiPluginOss(umiApi as any, {});
+      UmiPluginOss(umiApi as any, {
+        bucket: {
+          name: 'test',
+          region: 'oss-cn-beijing',
+        },
+      });
     }).toThrow();
     expect(messageQueue.size).toBe(0);
   });
@@ -66,69 +68,36 @@ describe('test index', () => {
       UmiPluginOss(umiApi as any, {
         accessKeyId: 'test',
         accessKeySecret: 'test',
+        bucket: {
+          name: 'test',
+          region: 'oss-cn-beijing',
+        },
       });
     }).not.toThrow();
     await wait(0.1);
     expect(messageQueue.size).toBe(6);
     const keys = Array.from(messageQueue.keys());
     expect(keys[0].endsWith('success')).toBe(true);
-    expect(messageQueue.get(keys[0])[0]).toBe(
-      'The following files will be uploaded to cdn.imhele.com/:\n' +
-        'umi.js    private\n' +
-        'static/image.png    private',
-    );
+    expect(messageQueue.get(keys[0])[0].includes('umi.js')).toBe(true);
   });
 
-  test('UmiPluginOss without cname and bucket', () => {
+  test('UmiPluginOss without bucket configuration', () => {
     messageQueue.clear();
     expect(() => {
-      UmiPluginOss(
-        {
-          ...umiApi,
-          config: {
-            ...umiApi.config,
-            publicPath: undefined,
-          },
-        } as any,
-        {
-          accessKeyId: 'test',
-          accessKeySecret: 'test',
-        },
-      );
+      UmiPluginOss(umiApi as any, {
+        accessKeyId: 'test',
+        accessKeySecret: 'test',
+        bucket: { region: 'oss-cn-beijing' },
+      });
+      UmiPluginOss(umiApi as any, {
+        accessKeyId: 'test',
+        accessKeySecret: 'test',
+        bucket: { name: 'test' },
+      });
     }).not.toThrow();
-    expect(messageQueue.size).toBe(1);
+    expect(messageQueue.size).toBe(2);
     const keys = Array.from(messageQueue.keys());
     expect(keys[0].endsWith('error')).toBe(true);
-  });
-
-  test('UmiPluginOss with bucket', async () => {
-    messageQueue.clear();
-    expect(() => {
-      UmiPluginOss(
-        {
-          ...umiApi,
-          config: {
-            ...umiApi.config,
-            publicPath: undefined,
-          },
-        } as any,
-        {
-          accessKeyId: 'test',
-          accessKeySecret: 'test',
-          bucket: {
-            name: 'imhele',
-            region: 'oss-cn-beijing',
-          },
-        },
-      );
-    }).not.toThrow();
-    await wait(0.1);
-    expect(messageQueue.size).toBe(6);
-    const keys = Array.from(messageQueue.keys());
-    expect(keys[0].endsWith('success')).toBe(true);
-    expect(messageQueue.get(keys[0])[0]).toBe(
-      'The following files will be uploaded to imhele/:\n' + 'umi.js    private\n' + 'static/image.png    private',
-    );
   });
 
   test('UmiPluginOss with RegExp acl rule', async () => {
@@ -137,20 +106,16 @@ describe('test index', () => {
       UmiPluginOss(umiApi as any, {
         accessKeyId: 'test',
         accessKeySecret: 'test',
-        acl: {
-          publicRead: new RegExp('.js'),
-        },
+        bucket: { endpoint: 'oss-cn-beijing.example.com' },
+        acl: { publicRead: new RegExp('.js') },
       });
     }).not.toThrow();
     await wait(0.1);
     expect(messageQueue.size).toBe(6);
     const keys = Array.from(messageQueue.keys());
     expect(keys[0].endsWith('success')).toBe(true);
-    expect(messageQueue.get(keys[0])[0]).toBe(
-      'The following files will be uploaded to cdn.imhele.com/:\n' +
-        'umi.js    public-read\n' +
-        'static/image.png    private',
-    );
+    expect(messageQueue.get(keys[0])[0].includes('...')).toBe(true);
+    expect(messageQueue.get(keys[0])[0].includes('public-read')).toBe(true);
   });
 
   test('UmiPluginOss with ignore filter', () => {
@@ -159,6 +124,7 @@ describe('test index', () => {
       UmiPluginOss(umiApi as any, {
         accessKeyId: 'test',
         accessKeySecret: 'test',
+        bucket: { endpoint: 'oss-cn-beijing.example.com' },
         ignore: {
           extname: ['.html'],
           sizeBetween: [[0, 1000]],
@@ -168,7 +134,7 @@ describe('test index', () => {
     expect(messageQueue.size).toBe(1);
     const keys = Array.from(messageQueue.keys());
     expect(keys[0].endsWith('success')).toBe(true);
-    expect(messageQueue.get(keys[0])[0]).toBe('There is nothing need to be uploaded.');
+    expect(messageQueue.get(keys[0])[0]).toBe('There is nothing need to be uploaded.\n');
   });
 
   test('UmiPluginOss with bijection', async () => {
@@ -177,6 +143,7 @@ describe('test index', () => {
       UmiPluginOss(umiApi as any, {
         accessKeyId: 'test',
         accessKeySecret: 'test',
+        bucket: { endpoint: 'oss-cn-beijing.example.com' },
         bijection: true,
       });
     }).not.toThrow();
@@ -185,12 +152,8 @@ describe('test index', () => {
     const keys = Array.from(messageQueue.keys());
     expect(keys[0].endsWith('success')).toBe(true);
     expect(keys[1].endsWith('success')).toBe(true);
-    expect(messageQueue.get(keys[0])[0]).toBe('There is nothing need to be deleted.');
-    expect(messageQueue.get(keys[1])[0]).toBe(
-      'The following files will be uploaded to cdn.imhele.com/:\n' +
-        'umi.js    private\n' +
-        'static/image.png    private',
-    );
+    expect(messageQueue.get(keys[0])[0]).toBe('There is nothing need to be deleted.\n');
+    expect(messageQueue.get(keys[1])[0].includes('umi.js')).toBe(true);
   });
 
   test('UmiPluginOss with ignore existsInOss', async () => {
@@ -199,9 +162,8 @@ describe('test index', () => {
       UmiPluginOss(umiApi as any, {
         accessKeyId: 'test',
         accessKeySecret: 'test',
-        ignore: {
-          existsInOss: true,
-        },
+        bucket: { endpoint: 'oss-cn-beijing.example.com' },
+        ignore: { existsInOss: true },
       });
     }).not.toThrow();
     await wait(0.1);
