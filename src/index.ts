@@ -15,7 +15,7 @@ export interface UmiPluginOssOptions extends OSSOptions {
   bijection?: boolean;
   delimiter?: string;
   ignore?: {
-    extname?: string[];
+    extname?: string[] | false;
     existsInOss?: boolean;
     sizeBetween?: Array<[number, number]>;
   };
@@ -90,7 +90,11 @@ export default function(api: IApi, options?: UmiPluginOssOptions) {
             );
           }
         }
-        fileInfoArr = fileInfoArr.filter(filePath => !extname.includes(path.extname(filePath[0])));
+        if (extname) {
+          fileInfoArr = fileInfoArr.filter(filePath => {
+            return !extname.includes(path.extname(filePath[0]));
+          });
+        }
         if (Array.isArray(options.ignore.sizeBetween)) {
           fileInfoArr = fileInfoArr.filter(filePath => {
             const stat = statSync(filePath[1]);
@@ -108,7 +112,13 @@ export default function(api: IApi, options?: UmiPluginOssOptions) {
           const existsFileArr = await syncFiles.list(prefix, api);
           if (options.bijection) {
             const delFileArr: string[] = existsFileArr.filter(filename => {
-              return !fileInfoArr.some(fileInfo => fileInfo[0] === filename);
+              if (fileInfoArr.some(fileInfo => fileInfo[0] === filename)) {
+                return false;
+              }
+              if (extname && extname.includes(path.extname(filename))) {
+                return false;
+              }
+              return true;
             });
             if (delFileArr.length) {
               api.log.success(`The following files will be deleted:\n${delFileArr.join('\n')}\n`);
@@ -120,7 +130,7 @@ export default function(api: IApi, options?: UmiPluginOssOptions) {
           }
           if (options.ignore.existsInOss) {
             fileInfoArr = fileInfoArr.filter(fileInfo => {
-              return existsFileArr.includes(fileInfo[0]);
+              return !existsFileArr.includes(fileInfo[0]);
             });
           }
         }
@@ -140,7 +150,6 @@ export default function(api: IApi, options?: UmiPluginOssOptions) {
 
         // Empty list
         if (!fileInfoArr.length) {
-          // @TODO: bijection => delete files
           return api.log.success('There is nothing need to be uploaded.\n');
         }
 
@@ -149,7 +158,7 @@ export default function(api: IApi, options?: UmiPluginOssOptions) {
           `The following files will be uploaded to ${bucket.endpoint || bucket.name}/${prefix}:\n${fileInfoArr
             .map(fileInfo => {
               if (fileInfo[0].length > 48) {
-                return `...${fileInfo[0].slice(-21)}    ${fileInfo[2]}`;
+                return `...${fileInfo[0].slice(-45)}    ${fileInfo[2]}`;
               } else {
                 const space = Array.from({ length: 48 - fileInfo[0].length }).map(_ => '');
                 return `${fileInfo[0]}${space.join(' ')}    ${fileInfo[2]}`;

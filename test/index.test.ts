@@ -6,7 +6,6 @@ import UmiPluginOss, { handleAcl } from '../src/index';
 jest.mock('fs');
 jest.mock('path');
 jest.mock('ali-oss');
-jest.mock('syncFiles');
 
 export let messageQueue: Map<string, string[]> = new Map();
 
@@ -145,15 +144,35 @@ describe('test index', () => {
         accessKeySecret: 'test',
         bucket: { endpoint: 'oss-cn-beijing.example.com' },
         bijection: true,
+        waitBeforeDelete: 0,
+        ignore: { extname: false },
+        prefix: 'other/',
       });
     }).not.toThrow();
     await wait(0.1);
-    expect(messageQueue.size).toBe(7);
+    expect(messageQueue.size).toBe(10);
     const keys = Array.from(messageQueue.keys());
     expect(keys[0].endsWith('success')).toBe(true);
-    expect(keys[1].endsWith('success')).toBe(true);
-    expect(messageQueue.get(keys[0])[0]).toBe('There is nothing need to be deleted.\n');
-    expect(messageQueue.get(keys[1])[0].includes('umi.js')).toBe(true);
+    expect(keys[9].endsWith('success')).toBe(true);
+    expect(messageQueue.get(keys[0])[0].includes('will be deleted')).toBe(true);
+    expect(messageQueue.get(keys[2])[0].includes('umi.js')).toBe(true);
+  });
+
+  test('UmiPluginOss with bijection and ignore files', async () => {
+    messageQueue.clear();
+    expect(() => {
+      UmiPluginOss(umiApi as any, {
+        accessKeyId: 'test',
+        accessKeySecret: 'test',
+        bucket: { endpoint: 'oss-cn-beijing.example.com' },
+        bijection: true,
+        waitBeforeDelete: 0,
+        ignore: { extname: ['.html'] },
+      });
+    }).not.toThrow();
+    await wait(0.1);
+    const keys = Array.from(messageQueue.keys());
+    expect(messageQueue.get(keys[0])[0].includes('index.html')).toBe(false);
   });
 
   test('UmiPluginOss with ignore existsInOss', async () => {
@@ -167,8 +186,9 @@ describe('test index', () => {
       });
     }).not.toThrow();
     await wait(0.1);
-    expect(messageQueue.size).toBe(1);
+    expect(messageQueue.size).toBe(4);
     const keys = Array.from(messageQueue.keys());
     expect(keys[0].endsWith('success')).toBe(true);
+    expect(messageQueue.get(keys[1])[0].includes('umi.js')).toBe(false);
   });
 });

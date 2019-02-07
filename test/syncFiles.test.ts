@@ -47,7 +47,7 @@ describe('test syncFiles', () => {
       },
     };
     const instance = new SyncFiles(options);
-    const existsFileArr = await instance.list('test/in/syncFiles/', umiApi as any);
+    const existsFileArr = await instance.list('other/', umiApi as any);
     const existsFileArrB = await instance.list('404', umiApi as any);
     expect(existsFileArr).toMatchObject(['test.png']);
     expect(existsFileArrB.length).toBe(0);

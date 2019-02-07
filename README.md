@@ -35,10 +35,11 @@ interface Options {
   acl?: ACLType | ACLRule;
   bijection?: boolean;
   bucket?: {
-    name: string;
-    region?: string;
+    cname?: boolean;
     endpoint?: string;
     internal?: boolean;
+    name?: string;
+    region?: string;
   };
   headers?: {
     'Cache-Control'?: string;
@@ -55,6 +56,7 @@ interface Options {
     existsInOss?: boolean;
     sizeBetween?: Array<[number, number]>;
   };
+  prefix?: string;
   secure?: boolean;
   stsToken?: string;
   timeout?: number;
