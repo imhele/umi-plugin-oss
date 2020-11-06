@@ -1,8 +1,8 @@
 import OSS from 'ali-oss';
 import { createReadStream } from 'fs';
-import { IApi } from 'umi-plugin-types';
+import { IApi } from 'umi';
 
-export type ACLType = 'public-read-write' | 'public-read' | 'private';
+export type ACLType = 'public-read-write' | 'public-read' | 'private' | undefined;
 
 export type FileInfo = [string, string, ACLType];
 
@@ -14,7 +14,6 @@ export interface OssHeaders {
   'x-oss-server-side-encryption'?: 'AES256' | 'KMS';
   'x-oss-server-side-encryption-key-id'?: string;
   'x-oss-object-acl'?: ACLType;
-  [key: string]: string;
 }
 
 export interface OSSOptions {
@@ -51,11 +50,11 @@ export default class SyncFiles {
     const ossOptions = {
       accessKeyId: options.accessKeyId,
       accessKeySecret: options.accessKeySecret,
-      bucket: options.bucket.name,
-      cname: options.bucket.cname,
-      endpoint: options.bucket.endpoint,
-      internal: options.bucket.internal,
-      region: options.bucket.region,
+      bucket: options.bucket?.name,
+      cname: options.bucket?.cname,
+      endpoint: options.bucket?.endpoint,
+      internal: options.bucket?.internal,
+      region: options.bucket?.region,
       stsToken: options.stsToken,
       secure: options.secure,
       timeout: options.timeout,
@@ -69,7 +68,7 @@ export default class SyncFiles {
     for (const fileInfo of fileInfoArr) {
       const startTime = Date.now();
       const targetKey = `${prefix}${fileInfo[0]}`;
-      api.log.pending(`Uploading ${targetKey}...`);
+      api.logger.profile(`Uploading ${targetKey}...`);
       const stream = createReadStream(fileInfo[1]);
       const headers: OssHeaders = {
         ...this.options.headers,
@@ -77,9 +76,9 @@ export default class SyncFiles {
       };
       const result = await this.oss.putStream(targetKey, stream, { headers });
       if (result.res.status === 200) {
-        api.log.success(targetKey, `${(Date.now() - startTime) / 100}s`);
+        api.logger.log(targetKey, `${(Date.now() - startTime) / 100}s`);
       } else {
-        api.log.error(targetKey, JSON.stringify(result.res));
+        api.logger.error(targetKey, JSON.stringify(result.res));
       }
     }
     return new Promise(resolve => resolve(Date.now() - globalStartTime));
@@ -88,12 +87,12 @@ export default class SyncFiles {
     let marker: string | null = prefix;
     const existsFileArr: string[] = [];
     while (typeof marker === 'string') {
-      const result = await this.oss.list({ prefix, marker });
+      const result: any = await this.oss.list({ prefix, marker });
       if (result.res.status === 200) {
         existsFileArr.push(...result.objects.map((obj: any) => obj.name));
         marker = result.nextMarker;
       } else {
-        api.log.error(JSON.stringify(result.res));
+        api.logger.error(JSON.stringify(result.res));
         break;
       }
     }
@@ -111,10 +110,10 @@ export default class SyncFiles {
         return !(<string[]>(result.deleted)).includes(targetKey);
       });
       if (failed.length) {
-        api.log.error(`Delete failed:\n${failed.join('\n')}\n`);
+        api.logger.error(`Delete failed:\n${failed.join('\n')}\n`);
       }
     } else {
-      api.log.error(JSON.stringify(result.res));
+      api.logger.error(JSON.stringify(result.res));
     }
     return new Promise(resolve => resolve(Date.now() - globalStartTime));
   }

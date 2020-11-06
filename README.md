@@ -6,6 +6,9 @@
 [![Coverage Status](https://coveralls.io/repos/github/imhele/umi-plugin-oss/badge.svg?branch=master)](https://coveralls.io/github/imhele/umi-plugin-oss?branch=master)
 [![License](https://img.shields.io/npm/l/umi-plugin-oss.svg)](https://npmjs.org/package/umi-plugin-oss)
 
+
+> Add Umi 3.0 support
+
 **Just add a plugin into your [Umi](https://github.com/umijs/umi) project, automatically upload productions to [OSS@AliCloud](https://www.alibabacloud.com/product/oss) !**
 
 ## Usage
@@ -19,9 +22,7 @@ Add `umi-plugin-oss` into `.umirc.js` or `config.js` of your `UmiJS` project. [U
 
 ```js
 export default {
-  plugins: [
-    ['umi-plugin-oss', options],
-  ],
+  oss: Options,
 }
 ```
 

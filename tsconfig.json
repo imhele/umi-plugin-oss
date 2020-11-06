@@ -1,22 +1,26 @@
 {
   "compilerOptions": {
-    "target": "es5",
-    "module": "commonjs",
-    "declaration": true,
+    "target": "esnext",
     "moduleResolution": "node",
-    "importHelpers": true,
+    "jsx": "preserve",
+    "allowJs": true,
     "esModuleInterop": true,
     "experimentalDecorators": true,
-    "noImplicitAny": true,
-    "preserveConstEnums": true,
-    "lib": ["esnext", "dom"],
-    "outDir": "lib/"
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitReturns": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "declaration": true
   },
-  "include": [
-    "src/**/*"
-  ],
   "exclude": [
     "node_modules",
-    "**/*.spec.ts"
+    "dist",
+    "example",
+    "jest.config.js",
+    "**/*.spec.ts",
+    "fixtures",
+    "examples",
+    "**/lib",
+    "**/scripts"
   ]
 }

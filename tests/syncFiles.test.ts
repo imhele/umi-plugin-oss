@@ -1,4 +1,3 @@
-import 'jest';
 import { umiApi, messageQueue } from './index.test';
 import SyncFiles, { SyncFilesOptions, wait } from '../src/syncFiles';
 
@@ -34,7 +33,8 @@ describe('test syncFiles', () => {
     const keys = Array.from(messageQueue.keys());
     const error = keys.find(k => k.endsWith('error'));
     expect(error).not.toBe(undefined);
-    expect(messageQueue.get(error)[0]).toBe('403');
+    const e = messageQueue.get(<any>error);
+    expect(e && e[0]).toBe('403');
   });
 
   test('SyncFiles.list', async () => {
