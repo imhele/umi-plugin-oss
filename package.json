@@ -1,6 +1,6 @@
 {
   "name": "umi-plugin-oss",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "typings": "./lib/index.d.ts",
@@ -13,8 +13,6 @@
     "precommit": "lint-staged",
     "pre": "yarn lint && yarn build && yarn move-lib && cd examples/base && yarn build",
     "pre:win": "yarn lint && yarn build && yarn move-lib:win && cd examples\\base && yarn build",
-    "test": "umi-test",
-    "test:coverage": "umi-test --coverage"
   },
   "keywords": [
     "umi",
