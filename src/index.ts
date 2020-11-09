@@ -1,5 +1,5 @@
 import path from 'path';
-import { IApi } from 'umi-plugin-types';
+import { IApi } from 'umi';
 import { readdirSync, statSync } from 'fs';
 import SyncFiles, { ACLType, OSSOptions, FileInfo } from './syncFiles';
 
@@ -50,13 +50,22 @@ export const handleAcl = (rule: RegExp | string[], fileInfoArr: FileInfo[], acl:
   }
 };
 
-export default function(api: IApi, options?: UmiPluginOssOptions) {
-  api.onBuildSuccess(
-    (): void => {
+export default (api: IApi) => {
+  api.describe({
+    key: 'oss',
+    config: {
+      default: defaultOptions,
+      schema(joi) {
+        return joi.object();
+      },
+    },
+  });
+  api.onBuildComplete(({ err }) => {
+    if (!err) {
       // default value
-      options = {
+      const options = {
         ...defaultOptions,
-        ...options,
+        ...api.userConfig.oss,
       };
       const {
         bucket,
@@ -66,7 +75,7 @@ export default function(api: IApi, options?: UmiPluginOssOptions) {
 
       // check options
       if (!bucket.endpoint && (!bucket.name || !bucket.region)) {
-        return api.log.error('No valid bucket configuration was found.');
+        return api.logger.error('No valid bucket configuration was found.');
       }
       if (!prefix.endsWith('/')) prefix += '/';
       if (prefix.startsWith('/')) prefix = prefix.slice(1);
@@ -77,6 +86,9 @@ export default function(api: IApi, options?: UmiPluginOssOptions) {
       (async function() {
         // filter unnecessary files
         const { absOutputPath } = api.paths;
+        if (!absOutputPath) {
+          return;
+        }
         let fileInfoArr: FileInfo[] = readdirSync(absOutputPath).map(
           name => <FileInfo>[name, path.join(absOutputPath, name), 'private'],
         );
@@ -99,7 +111,7 @@ export default function(api: IApi, options?: UmiPluginOssOptions) {
           fileInfoArr = fileInfoArr.filter(filePath => {
             const stat = statSync(filePath[1]);
             if (!stat.isFile()) return false;
-            return !options.ignore.sizeBetween.some(([min, max]) => {
+            return !options.ignore.sizeBetween.some(([min, max]: [number, number]) => {
               return stat.size >= min && stat.size <= max;
             });
           });
@@ -121,11 +133,11 @@ export default function(api: IApi, options?: UmiPluginOssOptions) {
               return true;
             });
             if (delFileArr.length) {
-              api.log.success(`The following files will be deleted:\n${delFileArr.join('\n')}\n`);
+              api.logger.log(`The following files will be deleted:\n${delFileArr.join('\n')}\n`);
               const deleteCosts = await syncFiles.delete(prefix, delFileArr, api);
-              api.log.success(`Deleted in ${deleteCosts / 1000}s`);
+              api.logger.log(`Deleted in ${deleteCosts / 1000}s`);
             } else {
-              api.log.success(`There is nothing need to be deleted.\n`);
+              api.logger.log(`There is nothing need to be deleted.\n`);
             }
           }
           if (options.ignore.existsInOss) {
@@ -141,20 +153,28 @@ export default function(api: IApi, options?: UmiPluginOssOptions) {
           fileInfoArr.forEach(fileInfo => (fileInfo[2] = <FileInfo[2]>options.acl));
         } else {
           (<ACLRule>options.acl).else = (<ACLRule>options.acl).else || 'private';
-          fileInfoArr.forEach(fileInfo => (fileInfo[2] = (<ACLRule>options.acl).else));
+          fileInfoArr.forEach(fileInfo => {
+            fileInfo[2] = (<ACLRule>options.acl).else;
+          });
           const { publicReadWrite, publicRead, private: privateAcl } = <ACLRule>options.acl;
-          handleAcl(publicReadWrite, fileInfoArr, 'public-read-write');
-          handleAcl(publicRead, fileInfoArr, 'public-read');
-          handleAcl(privateAcl, fileInfoArr, 'private');
+          if (publicReadWrite) {
+            handleAcl(publicReadWrite, fileInfoArr, 'public-read-write');
+          }
+          if (publicRead) {
+            handleAcl(publicRead, fileInfoArr, 'public-read');
+          }
+          if (privateAcl) {
+            handleAcl(privateAcl, fileInfoArr, 'private');
+          }
         }
 
         // Empty list
         if (!fileInfoArr.length) {
-          return api.log.success('There is nothing need to be uploaded.\n');
+          return api.logger.log('There is nothing need to be uploaded.\n');
         }
 
         // upload and print results
-        api.log.success(
+        api.logger.log(
           `The following files will be uploaded to ${bucket.endpoint || bucket.name}/${prefix}:\n${fileInfoArr
             .map(fileInfo => {
               if (fileInfo[0].length > 48) {
@@ -168,8 +188,8 @@ export default function(api: IApi, options?: UmiPluginOssOptions) {
         );
 
         const uploadCosts = await syncFiles.upload(prefix, fileInfoArr, api);
-        api.log.success(`Uploaded in ${uploadCosts / 1000}s\n`);
+        api.logger.log(`Uploaded in ${uploadCosts / 1000}s\n`);
       })();
-    },
-  );
-}
+    }
+  });
+};
