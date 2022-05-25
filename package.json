@@ -1,6 +1,6 @@
 {
   "name": "umi-plugin-oss",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "main": "./lib/index.js",
   "scripts": {
     "build": "father-build",
@@ -41,7 +41,7 @@
   ],
   "license": "MIT",
   "peerDependencies": {
-    "umi": "2.x"
+    "umi": "3.x"
   },
   "dependencies": {
     "ali-oss": "~6.0.2"
