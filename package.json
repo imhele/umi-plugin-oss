@@ -53,7 +53,7 @@
     "coveralls": "^3.0.2",
     "eslint": "^5.10.0",
     "father-build": "^1.18.5",
-    "lint-staged": "^8.1.0",
+    "lint-staged": "^13.1.0",
     "tslint": "^5.12.0",
     "tslint-eslint-rules": "^5.4.0",
     "typescript": "^3.9.7",
