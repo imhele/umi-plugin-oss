@@ -57,7 +57,7 @@
     "tslint": "^5.12.0",
     "tslint-eslint-rules": "^5.4.0",
     "typescript": "^3.9.7",
-    "umi": "^3.2.25",
+    "umi": "^3.5.35",
     "umi-plugin-types": "^0.3.0"
   }
 }
